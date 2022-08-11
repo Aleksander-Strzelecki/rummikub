@@ -3,6 +3,8 @@ import numpy as np
 
 class Rummikub:
     def __init__(self, num_players) -> None:
+        self.activ = 0
+        self.num_players = num_players
         self.players = []
         for i in range(num_players):
             self.players.append(Player())
@@ -14,7 +16,7 @@ class Rummikub:
         self.create_groups()
         
     def create_tiles(self):
-        colors = ['red', 'white', 'yellow', 'blue','red', 'white', 'yellow', 'blue']
+        colors = ['red', 'red', 'white','white', 'yellow', 'yellow','blue', 'blue']
         counter = 0
         for color in colors:
             for i in range(1,14):
@@ -55,6 +57,22 @@ class Rummikub:
         for i in range(36):
             self.groups.append(np.zeros((106), dtype=bool))
 
+    def next_move(self):
+        actual_player = self.players[self.activ]
+        from_group = int(input("From: "))
+        to_group = int(input("To: "))
+        pointers = []
+        n = int(input("Enter number of elements : "))
+        for i in range(0, n):
+            ele = int(input())
+            pointers.append(ele) 
+        self.groups[from_group][pointers] = False
+        self.groups[to_group][pointers] = True
+        self.activ = (self.activ + 1) % self.num_players
+
+    def is_end(self):
+        return False
+
 
 class Handler(object):
     def __init__(self) -> None:
@@ -74,7 +92,12 @@ class Player(Handler):
         Handler.__init__(self)
 
     def lay_tiles(self, group, tiles_pointers):
-        pass
+        if self.validate_tiles(tiles_pointers):
+            group[tiles_pointers] = True
+            self.take_tiles(tiles_pointers)
+
+    def validate_tiles(self):
+        return True
 
 
 class Group(Handler):
@@ -84,4 +107,6 @@ class Group(Handler):
 
 if __name__ == '__main__':
     game = Rummikub(2)
-    game.render()
+    while not game.is_end():
+        game.render()
+        game.next_move()
