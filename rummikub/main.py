@@ -1,3 +1,4 @@
+from termcolor import colored
 import numpy as np
 
 class Rummikub:
@@ -5,50 +6,80 @@ class Rummikub:
         self.players = []
         for i in range(num_players):
             self.players.append(Player())
-        self.tiles_pointers = np.ones((104), dtype=bool)
+        self.tiles_pointers = np.ones((106), dtype=bool)
         self.tiles = {}
         self.create_tiles()
         self.distribute_tiles()
+        self.groups = []
+        self.create_groups()
         
-
     def create_tiles(self):
-        colors = ['r', 'b', 'o', 'b']
+        colors = ['red', 'white', 'yellow', 'blue','red', 'white', 'yellow', 'blue']
         counter = 0
         for color in colors:
-            for i in range(13):
+            for i in range(1,14):
                 self.tiles[counter] = (color, i)
                 counter += 1
-        self.tiles[counter] = ('j', 0)
+        self.tiles[counter] = ('magenta', 0)
         counter += 1
-        self.tiles[counter] = ('j', 0)
+        self.tiles[counter] = ('magenta', 0)
 
     def distribute_tiles(self):
-        indexes = np.random.choice(104, 14*len(self.players))
+        indexes = np.random.choice(106, 14*len(self.players), replace=False)
+        # print(len(indexes))
         for idx, player in enumerate(self.players):
-            player.set_tiles(indexes[14*idx:14*(idx+1)])
-            self.tiles_pointers[indexes[14*idx:14*(idx+1)]] = False
+            choice = indexes[14*idx:14*(idx+1)]
+            # print(choice, len(choice))
+            player.set_tiles(choice)
+            self.tiles_pointers[choice] = False
 
     def render(self):
-        print(self.tiles_pointers)
-        for player in self.players:
-            print(player.tiles_pointers)
-            # for idx in np.argwhere(self.tiles_pointers == True).tolist():
-            #     print(self.tiles[idx])
+        # print(len(np.nonzero(self.tiles_pointers)[0]))
+        # for player in self.players:
+        #     print(len(np.nonzero(player.get_pointers())[0]))
+        free_idx = np.nonzero(self.tiles_pointers)[0]
+        print("Free tiles[{}]: ".format(len(free_idx)))
+        for idx in free_idx:
+            tile = self.tiles[idx]
+            print(colored(tile[1], tile[0]), end=" ")
+        print('')
+        for number, player in enumerate(self.players):
+            player_idx = np.nonzero(player.get_pointers())[0]
+            print(f"Player {number}[{len(player_idx)}]: ")
+            for idx in player_idx:
+                tile = self.tiles[idx]
+                print(colored(tile[1], tile[0]), end=" ")
+            print('')
 
-class Player(object):
+    def create_groups(self):
+        for i in range(36):
+            self.groups.append(np.zeros((106), dtype=bool))
+
+
+class Handler(object):
     def __init__(self) -> None:
-        self.rack = Rack()
-        self.tiles_pointers = np.zeros((104), dtype=bool)
+        self.tiles_pointers = np.zeros((106), dtype=bool)
 
     def set_tiles(self, idx):
         self.tiles_pointers[idx] = True
 
-    def __str__(self) -> str:
-        print(self.tiles_pointers)
+    def take_tiles(self, idx):
+        self.tiles_pointers[idx] = False
 
-class Rack(object):
+    def get_pointers(self):
+        return self.tiles_pointers
+
+class Player(Handler):
     def __init__(self) -> None:
-        self.tiles = []
+        Handler.__init__(self)
+
+    def lay_tiles(self, group, tiles_pointers):
+        pass
+
+
+class Group(Handler):
+    def __init__(self) -> None:
+        Handler.__init__(self)
 
 
 if __name__ == '__main__':
