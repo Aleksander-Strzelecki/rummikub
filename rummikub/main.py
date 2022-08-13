@@ -1,5 +1,6 @@
 from termcolor import colored
 import numpy as np
+from itertools import groupby
 
 class Rummikub:
     def __init__(self, num_players) -> None:
@@ -14,17 +15,18 @@ class Rummikub:
         self.distribute_tiles()
         self.groups = []
         self.create_groups()
+        self.colors_pointers = {0:'magenta', 1:'red', 2:'white', 3:'yellow', 4:'blue'}
         
     def create_tiles(self):
-        colors = ['red', 'red', 'white','white', 'yellow', 'yellow','blue', 'blue']
+        colors = [1,1,2,2,3,3,4,4]
         counter = 0
         for color in colors:
             for i in range(1,14):
                 self.tiles[counter] = (color, i)
                 counter += 1
-        self.tiles[counter] = ('magenta', 0)
+        self.tiles[counter] = (0, 0)
         counter += 1
-        self.tiles[counter] = ('magenta', 0)
+        self.tiles[counter] = (0, 0)
 
     def distribute_tiles(self):
         indexes = np.random.choice(106, 14*len(self.players), replace=False)
@@ -36,22 +38,29 @@ class Rummikub:
             self.tiles_pointers[choice] = False
 
     def render(self):
-        # print(len(np.nonzero(self.tiles_pointers)[0]))
-        # for player in self.players:
-        #     print(len(np.nonzero(player.get_pointers())[0]))
-        free_idx = np.nonzero(self.tiles_pointers)[0]
-        print("Free tiles[{}]: ".format(len(free_idx)))
-        for idx in free_idx:
-            tile = self.tiles[idx]
-            print(colored(tile[1], tile[0]), end=" ")
-        print('')
+        tiles_idx = self.get_true_idx(self.tiles_pointers)
+        print("Free tiles[{}]: ".format(len(tiles_idx)))
+        self.print_tiles(tiles_idx)
+
         for number, player in enumerate(self.players):
-            player_idx = np.nonzero(player.get_pointers())[0]
-            print(f"Player {number}[{len(player_idx)}]: ")
-            for idx in player_idx:
-                tile = self.tiles[idx]
-                print(colored(tile[1], tile[0]), end=" ")
-            print('')
+            tiles_idx = self.get_true_idx(player.get_pointers())
+            print(f"Player {number}[{len(tiles_idx)}]: ")
+            self.print_tiles(tiles_idx)
+
+        groups_idx = np.unique(self.get_true_idx(self.groups))
+        for number, group_idx in enumerate(groups_idx):
+            tiles_idx = self.get_true_idx(self.groups[group_idx])
+            print(f"Group {group_idx}[{len(tiles_idx)}]: ")
+            self.print_tiles(tiles_idx)
+
+    def get_true_idx(self, array):
+        return np.nonzero(array)[0]
+
+    def print_tiles(self, tiles_idx):
+        for t_idx in tiles_idx:
+            tile = self.tiles[t_idx]
+            print(colored(tile[1], self.colors_pointers[tile[0]]), '(' + str(t_idx) + ')', end=" ")
+        print('')
 
     def create_groups(self):
         for i in range(36):
@@ -61,14 +70,50 @@ class Rummikub:
         actual_player = self.players[self.activ]
         from_group = int(input("From: "))
         to_group = int(input("To: "))
-        pointers = []
-        n = int(input("Enter number of elements : "))
-        for i in range(0, n):
-            ele = int(input())
-            pointers.append(ele) 
-        self.groups[from_group][pointers] = False
-        self.groups[to_group][pointers] = True
+        t_pointer = int(input())
+        
+        target = self.groups[to_group]
+        if self.validate_move(target, t_pointer):
+            if from_group == -1:
+                actual_player.take_tiles(t_pointer)
+            else:
+                self.groups[from_group][t_pointer] = False
+            self.groups[to_group][t_pointer] = True
         self.activ = (self.activ + 1) % self.num_players
+
+    def validate_move(self, target, t_pointer):
+        target[t_pointer] = True
+        result = self.check_group(target)
+        target[t_pointer] = False
+        return result
+
+    def check_group(self, target):
+        tiles_idx = self.get_true_idx(target)
+        if len(tiles_idx) == 1:
+            return True
+        
+        colors = []
+        numbers = []
+        for idx in tiles_idx:
+            colors.append(self.tiles[idx][0])
+            numbers.append(self.tiles[idx][1])
+
+        if self.all_equal(colors) and self.checkConsecutive(numbers):
+            return True
+        if self.all_equal(numbers) and self.checkUnique(colors):
+            return True
+        return False
+
+    def all_equal(self, iterable):
+        g = groupby(iterable)
+        return next(g, True) and not next(g, False)
+
+    def checkUnique(self, l):
+        return np.unique(l).size == len(l)
+
+    def checkConsecutive(self, l):
+        n = len(l) - 1
+        return (sum(np.diff(sorted(l)) == 1) >= n)
 
     def is_end(self):
         return False
