@@ -1,0 +1,149 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Journal Article
+% LaTeX Template
+% Version 1.4 (15/5/16)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Frits Wenneker (http://www.howtotex.com) with extensive modifications by
+% Vel (vel@LaTeXTemplates.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[twoside,twocolumn]{article}
+
+\usepackage{blindtext} % Package to generate dummy text throughout this template 
+
+\usepackage[sc]{mathpazo} % Use the Palatino font
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+\linespread{1.05} % Line spacing - Palatino needs more space between lines
+\usepackage{microtype} % Slightly tweak font spacing for aesthetics
+
+\usepackage[polish]{babel} % Language hyphenation and typographical rules
+
+\usepackage[hmarginratio=1:1,top=32mm,columnsep=20pt]{geometry} % Document margins
+\usepackage[hang, small,labelfont=bf,up,textfont=it,up]{caption} % Custom captions under/above floats in tables or figures
+\usepackage{booktabs} % Horizontal rules in tables
+
+\usepackage{lettrine} % The lettrine is the first enlarged letter at the beginning of the text
+
+\usepackage{enumitem} % Customized lists
+\setlist[itemize]{noitemsep} % Make itemize lists more compact
+
+\usepackage{abstract} % Allows abstract customization
+\renewcommand{\abstractnamefont}{\normalfont\bfseries} % Set the "Abstract" text to bold
+\renewcommand{\abstracttextfont}{\normalfont\small\itshape} % Set the abstract itself to small italic text
+
+\usepackage{titlesec} % Allows customization of titles
+\renewcommand\thesection{\Roman{section}} % Roman numerals for the sections
+\renewcommand\thesubsection{\roman{subsection}} % roman numerals for subsections
+\titleformat{\section}[block]{\large\scshape\centering}{\thesection.}{1em}{} % Change the look of the section titles
+\titleformat{\subsection}[block]{\large}{\thesubsection.}{1em}{} % Change the look of the section titles
+
+\usepackage{fancyhdr} % Headers and footers
+\pagestyle{fancy} % All pages have headers and footers
+\fancyhead{} % Blank out the default header
+\fancyfoot{} % Blank out the default footer
+\fancyhead[C]{Running title $\bullet$ May 2016 $\bullet$ Vol. XXI, No. 1} % Custom header text
+\fancyfoot[RO,LE]{\thepage} % Custom footer text
+
+\usepackage{titling} % Customizing the title section
+
+\usepackage{hyperref} % For hyperlinks in the PDF
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\setlength{\droptitle}{-4\baselineskip} % Move the title up
+
+\pretitle{\begin{center}\Huge\bfseries} % Article title formatting
+\posttitle{\end{center}} % Article title closing formatting
+\title{Algorytm Decyzyjny dla Rummikub} % Article title
+\author{%
+\textsc{Aleksander Strzelecki}\\[1ex] % Your name
+\normalsize Politechnika Gdańska \\ % Your institution
+\normalsize \href{mailto:s179971@student.pg.edu.pl}{s179971@student.pg.edu.pl} % Your email address
+}
+\date{\today} % Leave empty to omit a date
+\renewcommand{\maketitlehookd}{%
+\begin{abstract}
+\noindent
+% Rummikub jest grą dla 2-4 osób. Gra składa się z 106 kości. Każda kość posiada numer od 1 do 13
+% oraz jeden z kolorów(czarny, niebieski, pomarańczowy, czerwony). Każda kość występuje w dwóch egzemplarzach.
+% Czyli mamy 13*4*2+2(jokery) = 106 kości. Joker może zastępować dowolną kość. Gracze zaczynają grę 
+% z losowymi 14 koścmi. Reszta kości jest pulą, z której trzeba dobierać kości w przypadku braku ruchu przez 
+% gracza. Celem gracza jest układanie kości na stole w serie (np. 1(czarny),2(czarny),3(czarny)) lub w grupy
+% (1(czarny),1(czerwony),1(niebieski)). Seria lub grupa nie może liczyć mniej niż 3 kości. Gracz podczas ruchu może manipulować
+% również aktualnymi seriami i grupami dostępnymi na stole. Gracz musi wykonać otwarcie (wyłożenie kości o sumie wartości 
+% równej 30) w celu rozpoczęcia rozgrywki. Celem gry jest pozbycie się przez Gracza wszystkich swoich kości.
+\end{abstract}
+}
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+% Print the title
+\maketitle
+
+%----------------------------------------------------------------------------------------
+%	ARTICLE CONTENTS
+%----------------------------------------------------------------------------------------
+
+\section{Wstęp}
+
+% \lettrine[nindent=0em,lines=3]{L} orem ipsum dolor sit amet, consectetur adipiscing elit.
+
+
+%------------------------------------------------
+
+\section{Prace powiązane}
+
+Algorytm decyzyjny przedstawiony w \cite{Rijn:2016fr} nie zakładał możliwości 
+manipulowania istniejącymi płytkami. Algorytm polegał na wyliczeniu ocen ruchów w zależności od 
+płytki rozpoczynającej ruch. Następnie wybierany został zestaw ruchów, który dawał maksymalną 
+ocenę. Schemat szukania ruchów polegał na przemiennym tworzeniu ciągów i grup z dostępnych płytek.
+
+W artykule \cite{Slagle:1963js} zostało przedstawione rozwiązywanie całki symbolicznie.
+Autor podzielił przekształcenia na korzystne i heurystyczne. Przekstałcenia korzystne wykonywane są pierwsze, a
+heurystyczne w przypadku braku możliwości przekształcenia korzystnego. W miejscach, gdzie możliwe jest kilka 
+przekształceń otrzymujemy rozgałęzienie. Następnie sprawdzana jest złożoność wyrażeń w otrzymanych gałęziach i 
+do dalszego rozwiązywania wybierana jest zawsze ta o najmniejszej złożoności.
+%------------------------------------------------
+\section{Proponowane rozwiązanie}
+%------------------------------------------------
+\section{Wyniki}
+%------------------------------------------------
+
+\section{Podsumowanie}
+
+%----------------------------------------------------------------------------------------
+%	REFERENCE LIST
+%----------------------------------------------------------------------------------------
+
+\begin{thebibliography}{99} % Bibliography - this is intentionally simple in this template
+
+\bibitem{Rijn:2016fr}
+Fvan Rijn, Jan \& Takes, Frank \& Vis, Jonathan. (2016). 
+\newblock The Complexity of Rummikub Problems.
+\newblock {\em Leiden Institute of Advanced Computer Science, Leiden University, The Netherlands}.
+ 
+\bibitem{Slagle:1963js}
+James R. Slagle. 1963.
+\newblock A Heuristic Program that Solves Symbolic Integration Problems in Freshman Calculus. 
+\newblock {\em J. ACM 10, 4 (Oct. 1963), 507–520.}
+\end{thebibliography}
+
+%----------------------------------------------------------------------------------------
+
+\end{document}
