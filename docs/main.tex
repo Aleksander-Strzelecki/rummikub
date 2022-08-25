@@ -109,16 +109,39 @@
 
 \section{Prace powiązane}
 
-Algorytm decyzyjny przedstawiony w \cite{Rijn:2016fr} nie zakładał możliwości 
-manipulowania istniejącymi płytkami. Algorytm polegał na wyliczeniu ocen ruchów w zależności od 
-płytki rozpoczynającej ruch. Następnie wybierany został zestaw ruchów, który dawał maksymalną 
-ocenę. Schemat szukania ruchów polegał na przemiennym tworzeniu ciągów i grup z dostępnych płytek.
+Rozwiązanie problemu Rummikuba zostało zaproponowane w \cite{Rijn:2016}. Algorytm wyliczał punktacje sumy ruchów, przy założeniu 
+rozpoczęciu ruchu od konkretnej płytki. Polegało to na iteracji po wartościach rozpoczynających płytek od 1 do 13. W każdej iteracji układane były maksymalne 
+ciągi przy wykorzystaniu płytek gracza o wartości z aktualnej iteracji. Z płytek o wartości z aktualnej iteracji, których nie można było już 
+wykorzystać do rozbudowywania ciągów były wykorzystywane do rozbudowywania grup. Następnie wartości użytych płytek były sumowane i następowało 
+rekurencyjne wywołanie próby rozbudowywania ciągów dla płytek o wartości z aktualnej iteracji + 1. Pojedyńcza iteracja kończyła się w momencie 
+sprawdzenia możliwości rozbudowy ciągów z płytek o 
+wartości = 13. Następnie cała procedura była wywoływana ponownie, ale dla wartości rozpoczynających płytek +1. W ten sposób uzyskiwaliśmy zestaw ruchów dający maksymalną punktację, jednak zakładając brak możliwośći manipulowania 
+płytkami dostępnymi na stole.
+% Algorytm decyzyjny przedstawiony w \cite{Rijn:2016} nie zakładał możliwości 
+% manipulowania istniejącymi płytkami. Algorytm polegał na wyliczeniu punktacji ruchów w zależności od 
+% płytki rozpoczynającej ruch. Następnie wybierany został zestaw ruchów o najlepszej punktacji.
+%  Schemat szukania ruchów polegał na rozpoczęciu
 
-W artykule \cite{Slagle:1963js} zostało przedstawione rozwiązywanie całki symbolicznie.
+Rummikub polega na wykonywaniu przekształceń na zbiorach liczbowych. Problem dobierania przekształceń został 
+przedstawiony artykule \cite{Slagle:1963}, gdzie przekształcenia używane są do rozwiązywania całki symbolicznie.
 Autor podzielił przekształcenia na korzystne i heurystyczne. Przekstałcenia korzystne wykonywane są pierwsze, a
 heurystyczne w przypadku braku możliwości przekształcenia korzystnego. W miejscach, gdzie możliwe jest kilka 
 przekształceń otrzymujemy rozgałęzienie. Następnie sprawdzana jest złożoność wyrażeń w otrzymanych gałęziach i 
-do dalszego rozwiązywania wybierana jest zawsze ta o najmniejszej złożoności.
+do dalszego rozwiązywania wybierana jest zawsze gałąź z wyrażeniem o najmniejszej złożoności.
+
+Podczas rozgrywki Rummikuba gracz znając aktualny stan planszy oraz dostępne płytki(stan gry) musi dobrać najlepsze 
+przekształcenia(akcje). Po wykonaniu przekształceń gracz może oszacować wartość przekształceń sumując wartości pozbytych 
+płytek(nagroda). Rozwiązanie tak zdefiniowanego problemu zostało przedstawione w \cite{Kaelbling:1996}. Algorytm Q-learning nie wymaga żadnej początkowej 
+wiedzy na temat badanego problemu. Agent(jednostka, której akcje dyktowane są przez algorytm) uczy się, które akcje są najlepsze 
+w danym stanie gry, podczas rozgrywania kolejnych partii. W \cite{Kaelbling:1996} został również przedstawiony sposób na przechowywanie funcji przejścia[Q(stan, akcja) -> nagroda] 
+za pmocą sieci neuronowej. Połączenie sieci neuronowej z Q-learning tworzy algorytm Deep Q-learning.
+
+Algorytm MinMax przedstawiony w \cite{Winston:1992} służył do dobierania ruchów gracza przy jednoczesnym uwzględnianiu możliwych ruchów przeciwnika. 
+\cite{Winston:1992} przedstawia również zoptymalizowaną pod kątem prędkości działania wesję algorytmu MinMax - Alpha-Beta. Algorytm Alpha-Beta został użyty w maszynie  
+Deep Blue\textsuperscript{\textregistered} \cite{Campbell:2002}, która w 1997 pokonała szachowego mistrza świata Garryego Kasparova. Dla przypadku, gdy w grze występuje 
+element losowy(np. rzut kością, wylosowanie płytek w Rummikubie) został opracowany algorytm Expectiminimax \cite{Stuart:2009}. Algorytm sumuje wartości ruchów pomnożone 
+przez prawdopodobieństwa ich wystąpień.
+
 %------------------------------------------------
 \section{Proponowane rozwiązanie}
 %------------------------------------------------
@@ -131,18 +154,35 @@ do dalszego rozwiązywania wybierana jest zawsze ta o najmniejszej złożoności
 %	REFERENCE LIST
 %----------------------------------------------------------------------------------------
 
-\begin{thebibliography}{99} % Bibliography - this is intentionally simple in this template
+\bibliographystyle{plain}
+\bibliography{refs}
+% \begin{thebibliography}{99} % Bibliography - this is intentionally simple in this template
 
-\bibitem{Rijn:2016fr}
-Fvan Rijn, Jan \& Takes, Frank \& Vis, Jonathan. (2016). 
-\newblock The Complexity of Rummikub Problems.
-\newblock {\em Leiden Institute of Advanced Computer Science, Leiden University, The Netherlands}.
+% \bibitem{Rijn:2016}
+% Fvan Rijn, Jan \& Takes, Frank \& Vis, Jonathan. 2016. 
+% \newblock The Complexity of Rummikub Problems.
+% \newblock {\em Leiden Institute of Advanced Computer Science, Leiden University, The Netherlands}.
  
-\bibitem{Slagle:1963js}
-James R. Slagle. 1963.
-\newblock A Heuristic Program that Solves Symbolic Integration Problems in Freshman Calculus. 
-\newblock {\em J. ACM 10, 4 (Oct. 1963), 507–520.}
-\end{thebibliography}
+% \bibitem{Slagle:1963}
+% James R. Slagle. 1963.
+% \newblock A Heuristic Program that Solves Symbolic Integration Problems in Freshman Calculus. 
+% \newblock {\em J. ACM 10, 4 (Oct. 1963), 507–520.}
+
+% \bibitem{Kaelbling:1996}
+% Kaelbling, Leslie Pack, Michael L. Littman, and Andrew W. Moore. 1996.
+% \newblock Reinforcement learning: A survey.
+% \newblock {\em Journal of artificial intelligence research 4 (1996): 237-285.}
+
+% \bibitem{Winston:1992}
+% Winston, Patrick Henry. 1992.
+% \newblock Artificial Intelligence. 3rd ed.
+% \newblock {\em Addison-Wesley, 1992: 101-116}
+
+% \bibitem{Campbell:2002}
+% Murray Campbell, A.Joseph Hoane, Feng-hsiung Hsu. 2002.
+% \newblock Artificial Intelligence, Volume 134, Issues 1–2
+% \newblock 
+% \end{thebibliography}
 
 %----------------------------------------------------------------------------------------
 

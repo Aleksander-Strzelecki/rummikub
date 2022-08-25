@@ -1,0 +1,4 @@
+- Q learning
+- minmax with probability https://zoo.cs.yale.edu/classes/cs470/materials/aima2010.pdf 177-178 / https://en.wikipedia.org/wiki/Expectiminimax
+- Decision trees, when we have model to see decisions in human readeable form
+- monte carlo search tree as policy for exploration-exploitation action
