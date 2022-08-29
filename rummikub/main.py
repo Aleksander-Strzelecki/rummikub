@@ -16,8 +16,8 @@ class Rummikub:
         self.tiles = {}
         self.create_tiles()
         self.distribute_tiles()
-        self.groups = []
-        self.create_groups()
+        self.groups = np.zeros((36, 106), dtype=bool)
+        # self.create_groups()
         self.colors_pointers = {0:'magenta', 1:'red', 2:'white', 3:'yellow', 4:'blue'}
         
     def create_tiles(self):
@@ -56,7 +56,7 @@ class Rummikub:
 
         groups_idx = np.unique(self.get_true_idx(self.groups))
         for number, group_idx in enumerate(groups_idx):
-            tiles_idx = self.get_true_idx(self.groups[group_idx])
+            tiles_idx = self.get_true_idx(self.groups[group_idx,:])
             print(f"Group {group_idx}[{len(tiles_idx)}]: ")
             self.print_tiles(tiles_idx)
 
@@ -69,9 +69,9 @@ class Rummikub:
             print(colored(tile[1], self.colors_pointers[tile[0]]), '(' + str(t_idx) + ')', end=" ")
         print('')
 
-    def create_groups(self):
-        for i in range(36):
-            self.groups.append(np.zeros((106), dtype=bool))
+    # def create_groups(self):
+    #     for i in range(36):
+    #         self.groups.append(np.zeros((106), dtype=bool))
 
     def next_move(self):
         actual_player = self.players[self.activ]
@@ -80,17 +80,20 @@ class Rummikub:
             to_group = int(input("To: "))
             t_pointer = int(input())
             
-            target = self.groups[to_group]
+            target = self.groups[to_group,:]
             if self.validate_move(target, t_pointer):
                 if from_group == -1:
                     actual_player.take_tiles(t_pointer)
                 else:
-                    self.groups[from_group][t_pointer] = False
-                self.groups[to_group][t_pointer] = True
+                    self.groups[from_group,t_pointer] = False
+                self.groups[to_group,t_pointer] = True
         
         else:
-            # if self.validate_board:
-            self.activ = (self.activ + 1) % self.num_players
+            if self.validate_board():
+                self.activ = (self.activ + 1) % self.num_players
+            #     self.commit()
+            # else:
+            #     self.rollback()
 
     def validate_move(self, target, t_pointer):
         target[t_pointer] = True
@@ -99,7 +102,12 @@ class Rummikub:
         return result
 
     def validate_board(self):
-        pass
+        count = np.sum(self.groups, axis=1)
+        return np.all(count > 2)
+
+    def commit(self):
+        self.groups_backup = self.groups.copy()
+        # self.players_backup
 
     def check_group(self, target):
         tiles_idx = self.get_true_idx(target)
