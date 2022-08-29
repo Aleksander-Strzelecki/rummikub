@@ -53,7 +53,7 @@
 \pagestyle{fancy} % All pages have headers and footers
 \fancyhead{} % Blank out the default header
 \fancyfoot{} % Blank out the default footer
-\fancyhead[C]{Running title $\bullet$ May 2016 $\bullet$ Vol. XXI, No. 1} % Custom header text
+\fancyhead[C]{Algorytm Decyzyjny dla Rummikub $\bullet$ \today} % Custom header text
 \fancyfoot[RO,LE]{\thepage} % Custom footer text
 
 \usepackage{titling} % Customizing the title section
@@ -131,9 +131,8 @@ do dalszego rozwiązywania wybierana jest zawsze gałąź z wyrażeniem o najmni
 
 Podczas rozgrywki Rummikuba gracz znając aktualny stan planszy oraz dostępne płytki(stan gry) musi dobrać najlepsze 
 przekształcenia(akcje). Po wykonaniu przekształceń gracz może oszacować wartość przekształceń sumując wartości pozbytych 
-płytek(nagroda). Rozwiązanie tak zdefiniowanego problemu zostało przedstawione w \cite{Kaelbling:1996}. Algorytm Q-learning nie wymaga żadnej początkowej 
-wiedzy na temat badanego problemu. Agent(jednostka, której akcje dyktowane są przez algorytm) uczy się, które akcje są najlepsze 
-w danym stanie gry, podczas rozgrywania kolejnych partii. W \cite{Kaelbling:1996} został również przedstawiony sposób na przechowywanie funcji przejścia[Q(stan, akcja) -> nagroda] 
+płytek(nagroda). Rozwiązanie tak zdefiniowanego problemu zostało przedstawione w \cite{Kaelbling:1996}. Agent(jednostka, której akcje dyktowane są przez algorytm) uczy się, które akcje są najlepsze 
+w danym stanie gry, podczas rozgrywania kolejnych partii. W \cite{Kaelbling:1996} został również przedstawiony sposób na przechowywanie funkcji przejścia[Q(stan, akcja) -> nagroda] 
 za pmocą sieci neuronowej. Połączenie sieci neuronowej z Q-learning tworzy algorytm Deep Q-learning.
 
 Algorytm MinMax przedstawiony w \cite{Winston:1992} służył do dobierania ruchów gracza przy jednoczesnym uwzględnianiu możliwych ruchów przeciwnika. 

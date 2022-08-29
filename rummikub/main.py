@@ -1,8 +1,11 @@
 from termcolor import colored
 import numpy as np
 from itertools import groupby
+import os
 
 class Rummikub:
+    # control numbers:
+    # 100 - end of move
     def __init__(self, num_players) -> None:
         self.activ = 0
         self.num_players = num_players
@@ -38,12 +41,16 @@ class Rummikub:
             self.tiles_pointers[choice] = False
 
     def render(self):
+        os.system('clear')
+        
         tiles_idx = self.get_true_idx(self.tiles_pointers)
         print("Free tiles[{}]: ".format(len(tiles_idx)))
         self.print_tiles(tiles_idx)
 
         for number, player in enumerate(self.players):
             tiles_idx = self.get_true_idx(player.get_pointers())
+            if self.activ == number:
+                print('->', end='')
             print(f"Player {number}[{len(tiles_idx)}]: ")
             self.print_tiles(tiles_idx)
 
@@ -69,23 +76,30 @@ class Rummikub:
     def next_move(self):
         actual_player = self.players[self.activ]
         from_group = int(input("From: "))
-        to_group = int(input("To: "))
-        t_pointer = int(input())
+        if from_group != 100:
+            to_group = int(input("To: "))
+            t_pointer = int(input())
+            
+            target = self.groups[to_group]
+            if self.validate_move(target, t_pointer):
+                if from_group == -1:
+                    actual_player.take_tiles(t_pointer)
+                else:
+                    self.groups[from_group][t_pointer] = False
+                self.groups[to_group][t_pointer] = True
         
-        target = self.groups[to_group]
-        if self.validate_move(target, t_pointer):
-            if from_group == -1:
-                actual_player.take_tiles(t_pointer)
-            else:
-                self.groups[from_group][t_pointer] = False
-            self.groups[to_group][t_pointer] = True
-        self.activ = (self.activ + 1) % self.num_players
+        else:
+            # if self.validate_board:
+            self.activ = (self.activ + 1) % self.num_players
 
     def validate_move(self, target, t_pointer):
         target[t_pointer] = True
         result = self.check_group(target)
         target[t_pointer] = False
         return result
+
+    def validate_board(self):
+        pass
 
     def check_group(self, target):
         tiles_idx = self.get_true_idx(target)
