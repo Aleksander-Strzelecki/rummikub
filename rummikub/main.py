@@ -80,7 +80,7 @@ class Rummikub:
     def next_move(self):
         # actual_player = self.players[self.activ]
         from_group = int(input("From: "))
-        if from_group != 100:
+        if from_group < 100:
             to_group = int(input("To: "))
             t_pointer = int(input())
             
@@ -93,12 +93,19 @@ class Rummikub:
                     self.groups[from_group,t_pointer] = False
                 self.groups[to_group,t_pointer] = True
         
-        else:
+        elif from_group == 100:
             if self.validate_board():
                 self.activ = (self.activ + 1) % self.num_players
                 self._commit()
             else:
                 self._rollback()
+        elif from_group == 101:
+            self._rollback()
+            selected_tiles = np.random.choice(self.get_true_idx(self.tiles_pointers))
+            self.players[self.activ, selected_tiles] = True
+            self.tiles_pointers[selected_tiles] = False
+            self.activ = (self.activ + 1) % self.num_players
+            self._commit()
 
     def validate_move(self, target, t_pointer):
         target[t_pointer] = True
