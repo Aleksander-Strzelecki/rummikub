@@ -11,14 +11,11 @@ class Rummikub:
         self.activ = 0
         self.num_players = num_players
         self.players = np.zeros((num_players, 106), dtype=bool)
-        # for i in range(num_players):
-        #     self.players.append(Player())
         self.tiles_pointers = np.ones((106), dtype=bool)
         self.tiles = {}
         self.create_tiles()
         self.distribute_tiles()
         self.groups = np.zeros((36, 106), dtype=bool)
-        # self.create_groups()
         self.groups_backup = self.groups.copy()
         self.players_backup = self.players.copy()
         self.colors_pointers = {0:'magenta', 1:'red', 2:'white', 3:'yellow', 4:'blue'}
@@ -36,11 +33,8 @@ class Rummikub:
 
     def distribute_tiles(self):
         indexes = np.random.choice(106, 14*len(self.players), replace=False)
-        # print(len(indexes))
         for idx in range(self.num_players):
             choice = indexes[14*idx:14*(idx+1)]
-            # print(choice, len(choice))
-            # player.set_tiles(choice)
             self.players[idx, choice] = True
             self.tiles_pointers[choice] = False
 
@@ -73,12 +67,7 @@ class Rummikub:
             print(colored(tile[1], self.colors_pointers[tile[0]]), '(' + str(t_idx) + ')', end=" ")
         print('')
 
-    # def create_groups(self):
-    #     for i in range(36):
-    #         self.groups.append(np.zeros((106), dtype=bool))
-
     def next_move(self):
-        # actual_player = self.players[self.activ]
         from_group = int(input("From: "))
         if from_group < 100:
             to_group = int(input("To: "))
