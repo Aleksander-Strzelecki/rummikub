@@ -6,18 +6,21 @@ import os
 class Rummikub:
     # control numbers:
     # 100 - end of move
+    # 101 - get new tile
     def __init__(self, num_players) -> None:
         self.activ = 0
         self.num_players = num_players
-        self.players = []
-        for i in range(num_players):
-            self.players.append(Player())
+        self.players = np.zeros((num_players, 106), dtype=bool)
+        # for i in range(num_players):
+        #     self.players.append(Player())
         self.tiles_pointers = np.ones((106), dtype=bool)
         self.tiles = {}
         self.create_tiles()
         self.distribute_tiles()
         self.groups = np.zeros((36, 106), dtype=bool)
         # self.create_groups()
+        self.groups_backup = self.groups.copy()
+        self.players_backup = self.players.copy()
         self.colors_pointers = {0:'magenta', 1:'red', 2:'white', 3:'yellow', 4:'blue'}
         
     def create_tiles(self):
@@ -34,10 +37,11 @@ class Rummikub:
     def distribute_tiles(self):
         indexes = np.random.choice(106, 14*len(self.players), replace=False)
         # print(len(indexes))
-        for idx, player in enumerate(self.players):
+        for idx in range(self.num_players):
             choice = indexes[14*idx:14*(idx+1)]
             # print(choice, len(choice))
-            player.set_tiles(choice)
+            # player.set_tiles(choice)
+            self.players[idx, choice] = True
             self.tiles_pointers[choice] = False
 
     def render(self):
@@ -47,11 +51,11 @@ class Rummikub:
         print("Free tiles[{}]: ".format(len(tiles_idx)))
         self.print_tiles(tiles_idx)
 
-        for number, player in enumerate(self.players):
-            tiles_idx = self.get_true_idx(player.get_pointers())
-            if self.activ == number:
+        for idx in range(self.num_players):
+            tiles_idx = self.get_true_idx(self.players[idx,:])
+            if self.activ == idx:
                 print('->', end='')
-            print(f"Player {number}[{len(tiles_idx)}]: ")
+            print(f"Player {idx}[{len(tiles_idx)}]: ")
             self.print_tiles(tiles_idx)
 
         groups_idx = np.unique(self.get_true_idx(self.groups))
@@ -74,7 +78,7 @@ class Rummikub:
     #         self.groups.append(np.zeros((106), dtype=bool))
 
     def next_move(self):
-        actual_player = self.players[self.activ]
+        # actual_player = self.players[self.activ]
         from_group = int(input("From: "))
         if from_group != 100:
             to_group = int(input("To: "))
@@ -83,7 +87,8 @@ class Rummikub:
             target = self.groups[to_group,:]
             if self.validate_move(target, t_pointer):
                 if from_group == -1:
-                    actual_player.take_tiles(t_pointer)
+                    # actual_player.take_tiles(t_pointer)
+                    self.players[self.activ, t_pointer] = False
                 else:
                     self.groups[from_group,t_pointer] = False
                 self.groups[to_group,t_pointer] = True
@@ -91,9 +96,9 @@ class Rummikub:
         else:
             if self.validate_board():
                 self.activ = (self.activ + 1) % self.num_players
-            #     self.commit()
-            # else:
-            #     self.rollback()
+                self._commit()
+            else:
+                self._rollback()
 
     def validate_move(self, target, t_pointer):
         target[t_pointer] = True
@@ -103,11 +108,10 @@ class Rummikub:
 
     def validate_board(self):
         count = np.sum(self.groups, axis=1)
-        return np.all(count > 2)
+        count_no_zero = np.where(count==0, 3, count)
+        return np.all(count_no_zero > 2)
 
-    def commit(self):
-        self.groups_backup = self.groups.copy()
-        # self.players_backup
+        
 
     def check_group(self, target):
         tiles_idx = self.get_true_idx(target)
@@ -140,6 +144,13 @@ class Rummikub:
     def is_end(self):
         return False
 
+    def _commit(self):
+        self.groups_backup = self.groups.copy()
+        self.players_backup = self.players.copy()
+
+    def _rollback(self):
+        self.groups = self.groups_backup.copy()
+        self.players = self.players_backup.copy()
 
 class Handler(object):
     def __init__(self) -> None:
