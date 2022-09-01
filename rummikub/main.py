@@ -9,10 +9,11 @@ class Rummikub:
     # 101 - get new tile
     def __init__(self, num_players) -> None:
         self.activ = 0
+        self.move_done = False
         self.num_players = num_players
         self.players = np.zeros((num_players, 106), dtype=bool)
         self.tiles_pointers = np.ones((106), dtype=bool)
-        self.tiles = {}
+        self.tiles = np.zeros((2, 106), dtype=int)
         self.create_tiles()
         self.distribute_tiles()
         self.groups = np.zeros((36, 106), dtype=bool)
@@ -25,11 +26,11 @@ class Rummikub:
         counter = 0
         for color in colors:
             for i in range(1,14):
-                self.tiles[counter] = (color, i)
+                self.tiles[:,counter] = [color, i]
                 counter += 1
-        self.tiles[counter] = (0, 0)
+        self.tiles[:,counter] = [0, 0]
         counter += 1
-        self.tiles[counter] = (0, 0)
+        self.tiles[:,counter] = [0, 0]
 
     def distribute_tiles(self):
         indexes = np.random.choice(106, 14*len(self.players), replace=False)
@@ -63,7 +64,7 @@ class Rummikub:
 
     def print_tiles(self, tiles_idx):
         for t_idx in tiles_idx:
-            tile = self.tiles[t_idx]
+            tile = self.tiles[:,t_idx]
             print(colored(tile[1], self.colors_pointers[tile[0]]), '(' + str(t_idx) + ')', end=" ")
         print('')
 
@@ -75,6 +76,7 @@ class Rummikub:
             
             target = self.groups[to_group,:]
             if self.validate_move(target, t_pointer):
+                self.move_done = True
                 if from_group == -1:
                     # actual_player.take_tiles(t_pointer)
                     self.players[self.activ, t_pointer] = False
@@ -82,13 +84,15 @@ class Rummikub:
                     self.groups[from_group,t_pointer] = False
                 self.groups[to_group,t_pointer] = True
         
-        elif from_group == 100:
+        elif from_group == 100 and self.move_done:
+            self.move_done = False
             if self.validate_board():
                 self.activ = (self.activ + 1) % self.num_players
                 self._commit()
             else:
                 self._rollback()
         elif from_group == 101:
+            self.move_done
             self._rollback()
             selected_tiles = np.random.choice(self.get_true_idx(self.tiles_pointers))
             self.players[self.activ, selected_tiles] = True
@@ -107,18 +111,13 @@ class Rummikub:
         count_no_zero = np.where(count==0, 3, count)
         return np.all(count_no_zero > 2)
 
-        
-
     def check_group(self, target):
         tiles_idx = self.get_true_idx(target)
         if len(tiles_idx) == 1:
             return True
         
-        colors = []
-        numbers = []
-        for idx in tiles_idx:
-            colors.append(self.tiles[idx][0])
-            numbers.append(self.tiles[idx][1])
+        colors = self.tiles[0,tiles_idx]
+        numbers = self.tiles[1,tiles_idx]
 
         if self.all_equal(colors) and self.checkConsecutive(numbers):
             return True
@@ -126,16 +125,14 @@ class Rummikub:
             return True
         return False
 
-    def all_equal(self, iterable):
-        g = groupby(iterable)
-        return next(g, True) and not next(g, False)
+    def all_equal(self, array):
+        return np.all(array == array[0])
 
     def checkUnique(self, l):
         return np.unique(l).size == len(l)
 
     def checkConsecutive(self, l):
-        n = len(l) - 1
-        return (sum(np.diff(sorted(l)) == 1) >= n)
+        return np.all(np.diff(np.sort(l)) == 1)
 
     def is_end(self):
         return False
