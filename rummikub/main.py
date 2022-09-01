@@ -119,20 +119,28 @@ class Rummikub:
         colors = self.tiles[0,tiles_idx]
         numbers = self.tiles[1,tiles_idx]
 
-        if self.all_equal(colors) and self.checkConsecutive(numbers):
+        if self.all_equal(colors) and self.checkConsecutive(numbers) and len(numbers) < 14:
             return True
-        if self.all_equal(numbers) and self.checkUnique(colors):
+        if self.all_equal(numbers) and self.checkUnique(colors) and len(colors) < 5:
             return True
         return False
 
     def all_equal(self, array):
-        return np.all(array == array[0])
+        array_no_joker = array[array != 0]
+        return np.all(array_no_joker == array_no_joker[0])
 
     def checkUnique(self, l):
         return np.unique(l).size == len(l)
 
-    def checkConsecutive(self, l):
-        return np.all(np.diff(np.sort(l)) == 1)
+    def checkConsecutive(self, array):
+        jokers_count = len(array[array == 0])
+        if jokers_count == 0:
+            return np.all(np.diff(np.sort(array)) == 1)    
+        array_no_joker = array[array != 0]
+        diff_array = np.diff(np.sort(array_no_joker))
+        if np.sum(diff_array // 2) <= jokers_count:
+            return np.all(((diff_array%2==0) & (diff_array>0)) | diff_array==1)
+        # return np.all(np.diff(np.sort(array_no_joker)) == 1)
 
     def is_end(self):
         return False
