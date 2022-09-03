@@ -12,11 +12,15 @@ class Rummikub:
         self.move_done = False
         self.num_players = num_players
         self.players = np.zeros((num_players, 106), dtype=bool)
+        self.move_score = 0
+        self.manipulation = False
+        self.player_activated = np.zeros((num_players, ), dtype=bool)
         self.tiles_pointers = np.ones((106), dtype=bool)
         self.tiles = np.zeros((2, 106), dtype=int)
         self.create_tiles()
         self.distribute_tiles()
         self.groups = np.zeros((36, 106), dtype=bool)
+        self.existing_groups = []
         self.groups_backup = self.groups.copy()
         self.players_backup = self.players.copy()
         self.colors_pointers = {0:'magenta', 1:'red', 2:'white', 3:'yellow', 4:'blue'}
@@ -42,6 +46,7 @@ class Rummikub:
     def render(self):
         os.system('clear')
         
+        print("Actual scores: {}".format(self.move_score))
         tiles_idx = self.get_true_idx(self.tiles_pointers)
         print("Free tiles[{}]: ".format(len(tiles_idx)))
         self.print_tiles(tiles_idx)
@@ -77,22 +82,34 @@ class Rummikub:
             target = self.groups[to_group,:]
             if self.validate_move(target, t_pointer):
                 self.move_done = True
+                if to_group in self.existing_groups:
+                    self.manipulation = True
                 if from_group == -1:
                     # actual_player.take_tiles(t_pointer)
+                    self.move_score += self.tiles[1,t_pointer]
                     self.players[self.activ, t_pointer] = False
                 else:
                     self.groups[from_group,t_pointer] = False
+                    self.manipulation = True
                 self.groups[to_group,t_pointer] = True
         
         elif from_group == 100 and self.move_done:
-            self.move_done = False
-            if self.validate_board():
+            if self.player_activated[self.activ] and self.validate_board():
+                self.activ = (self.activ + 1) % self.num_players
+                self._commit()
+            elif not self.player_activated[self.activ] and not self.manipulation and self.move_score >= 30 and self.validate_board():
+                self.player_activated[self.activ] = True
                 self.activ = (self.activ + 1) % self.num_players
                 self._commit()
             else:
                 self._rollback()
+            self.move_done = False
+            self.move_score = 0
+            self.manipulation = False
         elif from_group == 101:
-            self.move_done
+            self.move_done = False
+            self.move_score = 0
+            self.manipulation = False
             self._rollback()
             selected_tiles = np.random.choice(self.get_true_idx(self.tiles_pointers))
             self.players[self.activ, selected_tiles] = True
@@ -148,40 +165,41 @@ class Rummikub:
     def _commit(self):
         self.groups_backup = self.groups.copy()
         self.players_backup = self.players.copy()
+        self.existing_groups = self.get_true_idx(self.groups)
 
     def _rollback(self):
         self.groups = self.groups_backup.copy()
         self.players = self.players_backup.copy()
 
-class Handler(object):
-    def __init__(self) -> None:
-        self.tiles_pointers = np.zeros((106), dtype=bool)
+# class Handler(object):
+#     def __init__(self) -> None:
+#         self.tiles_pointers = np.zeros((106), dtype=bool)
 
-    def set_tiles(self, idx):
-        self.tiles_pointers[idx] = True
+#     def set_tiles(self, idx):
+#         self.tiles_pointers[idx] = True
 
-    def take_tiles(self, idx):
-        self.tiles_pointers[idx] = False
+#     def take_tiles(self, idx):
+#         self.tiles_pointers[idx] = False
 
-    def get_pointers(self):
-        return self.tiles_pointers
+#     def get_pointers(self):
+#         return self.tiles_pointers
 
-class Player(Handler):
-    def __init__(self) -> None:
-        Handler.__init__(self)
+# class Player(Object):
+#     def __init__(self) -> None:
+#         Handler.__init__(self)
 
-    def lay_tiles(self, group, tiles_pointers):
-        if self.validate_tiles(tiles_pointers):
-            group[tiles_pointers] = True
-            self.take_tiles(tiles_pointers)
+#     def lay_tiles(self, group, tiles_pointers):
+#         if self.validate_tiles(tiles_pointers):
+#             group[tiles_pointers] = True
+#             self.take_tiles(tiles_pointers)
 
-    def validate_tiles(self):
-        return True
+#     def validate_tiles(self):
+#         return True
 
 
-class Group(Handler):
-    def __init__(self) -> None:
-        Handler.__init__(self)
+# class Group(Handler):
+#     def __init__(self) -> None:
+#         Handler.__init__(self)
 
 
 if __name__ == '__main__':
