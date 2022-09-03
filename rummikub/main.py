@@ -76,12 +76,15 @@ class Rummikub:
         if from_group < 100:
             to_group = int(input("To: "))
             t_pointer = int(input())
+            if from_group == -1 and not self.players[self.activ, t_pointer]:
+                return
+            elif from_group > -1 and not self.groups[from_group, t_pointer]:
+                return
             
             target = self.groups[to_group,:]
             if self.validate_move(target, t_pointer):
                 self.move_done = True
                 if from_group == -1:
-                    # actual_player.take_tiles(t_pointer)
                     self.move_score += self.tiles[1,t_pointer]
                     self.players[self.activ, t_pointer] = False
                 else:
@@ -96,7 +99,7 @@ class Rummikub:
                 self._rollback()
             self.move_done = False
             self.move_score = 0
-        elif from_group == 101:
+        elif from_group == 101 and np.any(self.tiles_pointers):
             self.move_done = False
             self.move_score = 0
             self._rollback()
@@ -145,7 +148,7 @@ class Rummikub:
         array_no_joker = array[array != 0]
         diff_array = np.diff(np.sort(array_no_joker))
         if np.sum(diff_array // 2) <= jokers_count:
-            return np.all(((diff_array%2==0) & (diff_array>0)) | diff_array==1)
+            return np.all(((diff_array%2==0) & (diff_array>0)) | (diff_array==1))
         return False
 
     def is_end(self):
