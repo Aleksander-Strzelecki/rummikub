@@ -8,6 +8,7 @@ class Rummikub:
     # 100 - end of move
     # 101 - get new tile
     tiles = np.zeros((2, 106), dtype=int)
+    tiles_number = 106
     def __init__(self, num_players) -> None:
         self.activ = 0
         self.move_done = False
