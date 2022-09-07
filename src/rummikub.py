@@ -176,7 +176,7 @@ class Rummikub:
 
     def _get_state(self):
         player_tiles = self.players[self.activ, :]
-        return np.hstack([player_tiles, self.groups.reshape(-1)])
+        return np.vstack([player_tiles, self.groups])
 
     def _get_reward(self):
         return self._reward
