@@ -7,7 +7,7 @@ if __name__ == '__main__':
     while not game.is_end():
         game.render()
         state, reward = game.next_move()
-        action = proteus.get_action(state)
+        action = proteus.get_e_greedy_action(state)
         # hint = Solver.solve_pair(state[0:Rummikub.tiles_number], state[Rummikub.tiles_number:Rummikub.tiles_number*2])
         
         x=0

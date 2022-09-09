@@ -1,15 +1,21 @@
-from math import radians
-from pickletools import optimize
 import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
 from solver import Solver
 from rummikub import Rummikub
 import random
 
 class Proteus(object):
     def __init__(self) -> None:
-        pass
-    
-    def get_action(self, state):
+        self.model = self._build_model()
+        self.model.compile(
+            loss='mean_squared_error',
+            optimizer="adam",
+            metrics=["accuracy"],
+        )
+
+    def get_e_greedy_action(self, state, eps=0.1):
         player = state[0,:]
         groups = state[1:,:]
         any_groups_mask = np.any(groups, axis=1)
@@ -21,14 +27,36 @@ class Proteus(object):
         for group, idx in zip(any_groups, any_groups_idx):
             tiles_idxs = Solver.solve_pair(player, group)
             for tile_idx in tiles_idxs:
-                state_test = state.copy()
-                state_test[0,tile_idx] = False
-                state_test[idx+1, tile_idx] = True
-                assessment = self.evaluate_state(state_test)
+                any_groups_test = any_groups.copy()
+                player_test = player.copy()
+                player_test[tile_idx] = False
+                any_groups_test[idx, tile_idx] = True
+                assessment = self.evaluate_state(np.vstack([player_test, any_groups_test]))
                 moves.append([-1, idx, tile_idx, assessment])
 
         moves_array = np.array(moves)
-        return moves_array[np.argmax(moves_array[:,3]),:]
+        if random.random() < eps:
+            row = np.random.choice(moves_array.shape[0], 1)
+            return moves_array[row[0],:3]
+        return moves_array[np.argmax(moves_array[:,3]),:3]
 
     def evaluate_state(self, state):
-        return random.random()
+        return self.model(tf.expand_dims(state, 0)).numpy()[0,0]
+
+    def _build_model(self):
+        input_dim = Rummikub.tiles_number
+        batch_size = 1
+        units = 64
+        output_size = 1
+
+        lstm_layer = keras.layers.LSTM(units, input_shape=(None, input_dim))
+        model = keras.models.Sequential(
+        [
+            lstm_layer,
+            keras.layers.BatchNormalization(),
+            keras.layers.Dense(output_size, activation='relu'),
+        ]
+        )
+        model.summary()
+
+        return model
