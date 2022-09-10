@@ -27,3 +27,9 @@ class Solver:
             condition = (((player_tiles[1,:] == group_tiles[1,0]) & (np.in1d(player_tiles[0,:], group_tiles[0,:], invert=True))) | (player_tiles[0,:]==0))
             result = np.hstack([result, player_tiles[2,condition]])
         return np.unique(result)
+
+    @classmethod
+    def check_board(cls, groups):
+        count = np.sum(groups, axis=1)
+        count_no_zero = np.where(count==0, 3, count)
+        return np.all(count_no_zero > 2)

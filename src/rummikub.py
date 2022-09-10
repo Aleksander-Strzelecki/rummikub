@@ -87,7 +87,7 @@ class Rummikub:
             if self.validate_move(target, t_pointer):
                 self.move_done = True
                 if from_group == -1:
-                    self.move_score += self.tiles[1,t_pointer]
+                    self.move_score += (self.tiles[1,t_pointer] * 7)
                     self.players[self.activ, t_pointer] = False
                 else:
                     self.groups[from_group,t_pointer] = False
@@ -97,7 +97,7 @@ class Rummikub:
         elif from_group == 100 and self.move_done:
             if self.validate_board():
                 self.activ = (self.activ + 1) % self.num_players
-                self._reward = self.move_score
+                self._reward = 1
                 self._commit()
             else:
                 self._reward = 0
@@ -138,10 +138,14 @@ class Rummikub:
         numbers = self.tiles[1,tiles_idx]
 
         if self.all_equal(colors) and self.checkConsecutive(numbers) and len(numbers) < 14:
-            self._reward = 1
+            self._reward = 0.1
+            # if len(numbers) == 3:
+            #     self._reward = 0.3
             return True
         if self.all_equal(numbers) and self.checkUnique(colors) and len(colors) < 5:
-            self._reward = 1
+            self._reward = 0.1
+            # if len(numbers) == 3:
+            #     self._reward = 0.3
             return True
         return False
 
