@@ -73,11 +73,11 @@ class Rummikub:
             print(colored(tile[1], self.colors_pointers[tile[0]]), '(' + str(t_idx) + ')', end=" ")
         print('')
 
-    def next_move(self):
-        from_group = int(input("From: "))
+    def next_move(self, from_group, to_group, t_pointer):
+        # from_group = int(input("From: "))
         if from_group < 100:
-            to_group = int(input("To: "))
-            t_pointer = int(input())
+            # to_group = int(input("To: "))
+            # t_pointer = int(input())
             if from_group == -1 and not self.players[self.activ, t_pointer]:
                 return self._get_state(), 0
             elif from_group > -1 and not self.groups[from_group, t_pointer]:
@@ -162,6 +162,20 @@ class Rummikub:
             return np.all(((diff_array%2==0) & (diff_array>0)) | (diff_array==1))
         return False
 
+    def reset(self):
+        self.activ = 0
+        self.move_done = False
+        self.players.fill(False)
+        self.move_score = 0
+        self.tiles_pointers.fill(True)
+        self.distribute_tiles()
+        self.groups.fill(False)
+        self.groups_backup = self.groups.copy()
+        self.players_backup = self.players.copy()
+        self._reward = 0
+
+        return self._get_state()
+    
     def is_end(self):
         return False
 
