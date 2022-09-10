@@ -7,13 +7,11 @@ from rummikub import Rummikub
 import random
 
 class Proteus(object):
-    def __init__(self) -> None:
-        self.model = self._build_model()
-        self.model.compile(
-            loss='mean_squared_error',
-            optimizer="adam",
-            metrics=["accuracy"],
-        )
+    def __init__(self, model_path=None) -> None:
+        if model_path:
+            self.model = tf.keras.models.load_model(model_path)
+        else:
+            self.model = self._build_model()
 
     def get_e_greedy_action(self, state, eps=0.1):
         player = state[0,:]
@@ -41,8 +39,8 @@ class Proteus(object):
 
         moves_array = np.array(moves)
         assessment_array = np.array(assessment)
-        if max(assessment) < 0.01:
-            return [101, 0, 0]
+        # if max(assessment) < 0.01:
+        #     return [101, 0, 0]
         if random.random() < eps:
             row = np.random.choice(moves_array.shape[0], 1)
             return moves_array[row[0],:3]
@@ -51,19 +49,41 @@ class Proteus(object):
     def evaluate_state(self, state):
         return self.model(tf.expand_dims(state, 0)).numpy()[0,0]
 
+    def evaluate_full_state(self, state):
+        player = state[0,:]
+        groups = state[1:,:]
+        any_groups_mask = np.any(groups, axis=1)
+        any_groups_mask[np.where(any_groups_mask==False)[0][0]] = True  # add one empty group to evaluation
+        any_groups_idx = np.where(any_groups_mask)[0]
+        any_groups = groups[any_groups_mask,:]
+
+        return self.evaluate_state(np.vstack([player, any_groups]))
+
+    def update_batch(self, dataset):
+        x_train, y_train = dataset
+        self.model.fit(x_train, y_train, batch_size=self.batch_size)
+
+    def save_model(self, model_path):
+        self.model.save(model_path)
+    
     def _build_model(self):
         input_dim = Rummikub.tiles_number
-        batch_size = 1
+        self.batch_size = 4
         units = 64
         output_size = 1
 
-        lstm_layer = keras.layers.LSTM(units, input_shape=(None, input_dim))
+        my_lstm_layer = keras.layers.LSTM(units, input_shape=(None, input_dim))
         model = keras.models.Sequential(
         [
-            lstm_layer,
+            my_lstm_layer,
             keras.layers.BatchNormalization(),
             keras.layers.Dense(output_size, activation='relu'),
         ]
+        )
+        model.compile(
+            loss='mean_squared_error',
+            optimizer="adam",
+            metrics=["accuracy"],
         )
         # model.summary()
 

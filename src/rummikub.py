@@ -147,6 +147,8 @@ class Rummikub:
 
     def all_equal(self, array):
         array_no_joker = array[array != 0]
+        if array_no_joker.size == 0:
+            return True
         return np.all(array_no_joker == array_no_joker[0])
 
     def checkUnique(self, l):
