@@ -43,8 +43,8 @@ class Proteus(object):
         #     return [101, 0, 0]
         if random.random() < eps:
             row = np.random.choice(moves_array.shape[0], 1)
-            return moves_array[row[0],:3]
-        return moves_array[np.argmax(assessment_array),:]
+            return moves_array[row[0],:3], np.max(assessment_array)
+        return moves_array[np.argmax(assessment_array),:], np.max(assessment_array)
 
     def evaluate_state(self, state):
         return self.model(tf.expand_dims(state, 0)).numpy()[0,0]
