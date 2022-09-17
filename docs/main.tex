@@ -90,7 +90,8 @@
 }
 
 %----------------------------------------------------------------------------------------
-
+% \usepackage{graphicx}
+% \graphicspath{ {./resources/} }
 \begin{document}
 
 % Print the title
@@ -134,6 +135,7 @@ przekształcenia(akcje). Po wykonaniu przekształceń gracz może oszacować war
 płytek(nagroda). Rozwiązanie tak zdefiniowanego problemu zostało przedstawione w \cite{Kaelbling:1996}. Agent(jednostka, której akcje dyktowane są przez algorytm) uczy się, które akcje są najlepsze 
 w danym stanie gry, podczas rozgrywania kolejnych partii. W \cite{Kaelbling:1996} został również przedstawiony sposób na przechowywanie funkcji przejścia[Q(stan, akcja) -> nagroda] 
 za pmocą sieci neuronowej. Połączenie sieci neuronowej z Q-learning tworzy algorytm Deep Q-learning.
+% \includegraphics{Markov_diagram_v2.png}
 
 Algorytm MinMax przedstawiony w \cite{Winston:1992} służył do dobierania ruchów gracza przy jednoczesnym uwzględnianiu możliwych ruchów przeciwnika. 
 \cite{Winston:1992} przedstawia również zoptymalizowaną pod kątem prędkości działania wesję algorytmu MinMax - Alpha-Beta. Algorytm Alpha-Beta został użyty w maszynie  

@@ -75,6 +75,7 @@ class Rummikub:
 
     def next_move(self, from_group, to_group, t_pointer):
         # from_group = int(input("From: "))
+        self._reward = 0
         if from_group < 100:
             # to_group = int(input("To: "))
             # t_pointer = int(input())

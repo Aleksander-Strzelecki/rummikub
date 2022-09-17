@@ -7,7 +7,7 @@ if __name__ == '__main__':
     gamma = 0.99
     eps = 0.01
     game = Rummikub(2)
-    proteus = Proteus('./models/first_model')
+    proteus = Proteus(game, './models/first_model')
     for episode in range(100):
         state = game.reset()
         buffer = []

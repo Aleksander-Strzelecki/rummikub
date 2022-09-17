@@ -4,16 +4,16 @@ import numpy as np
 import time
 
 if __name__ == '__main__':
-    gamma = 0.99
+    gamma = 0.90
     eps = 0.2
     game = Rummikub(2)
-    proteus = Proteus()
+    proteus = Proteus(game)
     for episode in range(501):
         state = game.reset()
         for length in range(10):
             buffer = []
             rewards = []
-            for i_batch in range(16):
+            for i_batch in range(64):
                 # game.render()
                 action, max_s = proteus.get_e_greedy_action(state, eps)
                 state_p, reward = game.next_move(action[0], action[1], action[2])

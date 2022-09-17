@@ -7,11 +7,12 @@ from rummikub import Rummikub
 import random
 
 class Proteus(object):
-    def __init__(self, model_path=None) -> None:
+    def __init__(self, game: Rummikub, model_path=None) -> None:
         if model_path:
             self.model = tf.keras.models.load_model(model_path)
         else:
             self.model = self._build_model()
+        self.game = game
 
     def get_e_greedy_action(self, state, eps=0.1):
         player = state[0,:]
@@ -35,7 +36,7 @@ class Proteus(object):
                 assessment.append(self.evaluate_state(np.vstack([player_test, any_groups_test])))
                 moves.append([-1, idx, tile_idx])
         ################ MOVE FINISH ONLY IF VALID BOARD ####################
-        if Solver.check_board(any_groups):
+        if Solver.check_board(any_groups) and self.game.move_done:
             assessment.append(self.evaluate_state(np.vstack([player, any_groups])))
             moves.append([100,0,0])
             valid_board = True
@@ -45,7 +46,7 @@ class Proteus(object):
         # if max(assessment) < 0.01:
         #     return [101, 0, 0]
         chance = random.random()
-        if chance < 0.5 and valid_board:
+        if valid_board:
             return np.array([100,0,0]), np.max(assessment_array)
         if chance < eps and assessment_array.size > 0:
             row = np.random.choice(moves_array.shape[0], 1)
@@ -77,13 +78,15 @@ class Proteus(object):
                 assessment.append(self.evaluate_state(np.vstack([player_test, any_groups_test])))
                 moves.append([-1, idx, tile_idx])
         ################ MOVE FINISH ONLY IF VALID BOARD ####################
-        if Solver.check_board(any_groups):
-            assessment.append(self.evaluate_state(np.vstack([player, any_groups])))
-            moves.append([100,0,0])
+        if Solver.check_board(any_groups) and self.game.move_done:
+            # assessment.append(self.evaluate_state(np.vstack([player, any_groups])))
+            # moves.append([100,0,0])
             valid_board = True
 
         moves_array = np.array(moves)
         assessment_array = np.array(assessment)
+        if valid_board:
+            return np.array([100,0,0]), np.max(assessment_array)
         if assessment_array.size != 0:
             return moves_array[np.argmax(assessment_array),:], np.max(assessment_array)
         else:
@@ -104,7 +107,7 @@ class Proteus(object):
 
     def update_batch(self, dataset):
         x_train, y_train = dataset
-        self.model.fit(x_train, y_train, batch_size=self.batch_size, epochs=2)
+        self.model.fit(x_train, y_train, batch_size=self.batch_size, epochs=1)
 
     def save_model(self, model_path):
         self.model.save(model_path)
@@ -112,7 +115,7 @@ class Proteus(object):
     def _build_model(self):
         input_dim = Rummikub.tiles_number
         self.batch_size = 4
-        units = 64
+        units = 32
         output_size = 1
 
         my_lstm_layer = keras.layers.LSTM(units, input_shape=(None, input_dim))
@@ -120,12 +123,14 @@ class Proteus(object):
         [
             my_lstm_layer,
             keras.layers.BatchNormalization(),
-            keras.layers.Dense(output_size, activation='relu'),
+            keras.layers.Dense(output_size, activation='linear'),
         ]
         )
+
+        opt = keras.optimizers.Adam(learning_rate=0.0001)
         model.compile(
             loss='mean_squared_error',
-            optimizer="adam",
+            optimizer=opt,
             metrics=["accuracy"],
         )
         # model.summary()
