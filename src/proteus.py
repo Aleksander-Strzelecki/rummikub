@@ -43,11 +43,7 @@ class Proteus(object):
 
         moves_array = np.array(moves)
         assessment_array = np.array(assessment)
-        # if max(assessment) < 0.01:
-        #     return [101, 0, 0]
         chance = random.random()
-        if valid_board:
-            return np.array([100,0,0]), np.max(assessment_array)
         if chance < eps and assessment_array.size > 0:
             row = np.random.choice(moves_array.shape[0], 1)
             return moves_array[row[0],:3], np.max(assessment_array)

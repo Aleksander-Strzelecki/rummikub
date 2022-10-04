@@ -26,7 +26,7 @@ class Rummikub:
         self._reward = 0
         
     def create_tiles(self):
-        colors = [1,1,2,2,3,3,4,4]
+        colors = [1,2,3,4,1,2,3,4]
         counter = 0
         for color in colors:
             for i in range(1,14):
