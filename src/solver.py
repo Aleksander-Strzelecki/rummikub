@@ -19,13 +19,17 @@ class Solver:
         group_tiles = np.vstack([Rummikub.tiles[:, group_tiles_idx], group_tiles_idx])
         result = np.array([], dtype=int)
 
-        if np.all(group_tiles[0,:] == group_tiles[0,0]) and group_tiles.shape[1] < 13:
-            condition = (((player_tiles[0,:] == group_tiles[0,0]) & ((player_tiles[1,:] == np.amin(group_tiles[1,:]-1)) | (player_tiles[1,:] == np.amax(group_tiles[1,:]+1))))\
+        no_joker_tile_columns = np.where(group_tiles[0,:] > 0)[0]
+        if no_joker_tile_columns.size == 0:
+            return player_tiles_idx
+        no_joker_tile_column = no_joker_tile_columns[0]
+
+        if np.all((group_tiles[0,:] == group_tiles[0,no_joker_tile_column]) | (group_tiles[0,:] == 0)) and group_tiles.shape[1] < 13:
+            condition = (((player_tiles[0,:] == group_tiles[0,no_joker_tile_column]) & ((player_tiles[1,:] == np.amin(group_tiles[1,no_joker_tile_columns]-1)) | (player_tiles[1,:] == np.amax(group_tiles[1,no_joker_tile_columns]+1))))\
                           | (player_tiles[0,:] == 0))
             result = np.hstack([result, player_tiles[2,condition]])
-        if np.all((group_tiles[1,:] == group_tiles[1,0]) | (group_tiles[1,:] == 0)) and group_tiles.shape[1] < 4:
-            no_joker_tile = np.where(group_tiles[1,:] > 0)[0][0]
-            condition = (((player_tiles[1,:] == group_tiles[1,no_joker_tile]) & (np.in1d(player_tiles[0,:], group_tiles[0,:], invert=True))) | (player_tiles[0,:]==0))
+        if np.all((group_tiles[1,:] == group_tiles[1,no_joker_tile_column]) | (group_tiles[1,:] == 0)) and group_tiles.shape[1] < 4:
+            condition = (((player_tiles[1,:] == group_tiles[1,no_joker_tile_column]) & (np.in1d(player_tiles[0,:], group_tiles[0,:], invert=True))) | (player_tiles[0,:]==0))
             result = np.hstack([result, player_tiles[2,condition]])
         return np.unique(result)
 
