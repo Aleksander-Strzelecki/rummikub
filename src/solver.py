@@ -30,7 +30,7 @@ class Solver:
                         | (player_tiles[0,:] == 0))
             condition = condition_jokers_outer_bound
             jokers_count = len(group_numbers[group_numbers == 0])
-            jokers_in = cls._inner_jokers(group_numbers)
+            jokers_in = cls._inner_jokers(cls, group_numbers)
             if (jokers_count > 0) and (jokers_count != jokers_in):
                 jokers_out = jokers_count - jokers_in
                 lower_bound_value_with_jokers = group_tiles[1,no_joker_tile_columns]-1*jokers_out-1
