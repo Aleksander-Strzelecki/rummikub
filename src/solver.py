@@ -23,8 +23,9 @@ class Solver:
             condition = (((player_tiles[0,:] == group_tiles[0,0]) & ((player_tiles[1,:] == np.amin(group_tiles[1,:]-1)) | (player_tiles[1,:] == np.amax(group_tiles[1,:]+1))))\
                           | (player_tiles[0,:] == 0))
             result = np.hstack([result, player_tiles[2,condition]])
-        if np.all(group_tiles[1,:] == group_tiles[1,0]) and group_tiles.shape[1] < 4:
-            condition = (((player_tiles[1,:] == group_tiles[1,0]) & (np.in1d(player_tiles[0,:], group_tiles[0,:], invert=True))) | (player_tiles[0,:]==0))
+        if np.all((group_tiles[1,:] == group_tiles[1,0]) | (group_tiles[1,:] == 0)) and group_tiles.shape[1] < 4:
+            no_joker_tile = np.where(group_tiles[1,:] > 0)[0][0]
+            condition = (((player_tiles[1,:] == no_joker_tile) & (np.in1d(player_tiles[0,:], group_tiles[0,:], invert=True))) | (player_tiles[0,:]==0))
             result = np.hstack([result, player_tiles[2,condition]])
         return np.unique(result)
 
