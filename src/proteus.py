@@ -74,7 +74,9 @@ class Proteus(object):
                 player_test = player.copy()
                 player_test[tile_idx] = False
                 any_groups_test[idx, tile_idx] = True
-                assessment.append(self.evaluate_state(np.vstack([player_test, any_groups_test])))
+                reduce_groups = np.hstack((any_groups_test[:,:6] | any_groups_test[:,6:12], any_groups_test[:,12:]))
+                reduce_player = np.hstack(player_test[:6] | player_test[6:12], player_test[12:])
+                assessment.append(self.evaluate_state(np.vstack([reduce_player, reduce_groups])))
                 moves.append([-1, idx, tile_idx])
         ################ MOVE FINISH ONLY IF VALID BOARD ####################
         if Solver.check_board(any_groups) and self.game.move_done:
