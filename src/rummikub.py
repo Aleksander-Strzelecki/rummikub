@@ -157,8 +157,9 @@ class Rummikub:
             return True
         return np.all(array_no_joker == array_no_joker[0])
 
-    def checkUnique(self, l):
-        return np.unique(l).size == len(l)
+    def checkUnique(self, array):
+        array_no_joker = array[array != 0]
+        return np.unique(array_no_joker).size == len(array_no_joker)
 
     def checkConsecutive(self, array):
         jokers_count = len(array[array == 0])
