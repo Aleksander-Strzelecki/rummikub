@@ -38,7 +38,7 @@ class Solver:
                 nth_positive_smallest_value_with_joker = nth_smallest_value_with_joker[nth_smallest_value_with_joker > 0]
                 upper_bound_value_with_jokers = group_tiles[1,no_joker_tile_columns]+1*jokers_out+1
                 nth_largest_value_with_joker = np.sort(upper_bound_value_with_jokers)[-jokers_out:]
-                nth_valid_largest_value_with_joker = nth_smallest_value_with_joker[nth_largest_value_with_joker < 14]
+                nth_valid_largest_value_with_joker = nth_largest_value_with_joker[nth_largest_value_with_joker < 14]
                 condition_jokers_inner_bound = ((player_tiles[0,:] == group_tiles[0,no_joker_tile_column]) & ((np.in1d(player_tiles[1,:], nth_positive_smallest_value_with_joker)) | (np.in1d(player_tiles[1,:], nth_valid_largest_value_with_joker))))
                 condition = (condition | condition_jokers_inner_bound)
             result = np.hstack([result, player_tiles[2,condition]])
