@@ -48,6 +48,16 @@ class Solver:
         return np.unique(result)
 
     @classmethod
+    def solve_no_duplicates(cls, player, group):
+        tiles_idxs = cls.solve_pair(player, group)
+        tiles_idxs_bool = np.zeros((Rummikub.tiles_number), dtype=bool)
+        tiles_idxs_bool[tiles_idxs] = True
+        tiles_idxs_bool[:Rummikub.reduced_tiles_number-2] = tiles_idxs_bool[:Rummikub.reduced_tiles_number-2] \
+            & np.logical_xor(tiles_idxs_bool[:Rummikub.reduced_tiles_number-2], tiles_idxs_bool[Rummikub.reduced_tiles_number-2:Rummikub.tiles_number-2])
+
+        return np.where(tiles_idxs_bool)[0]
+
+    @classmethod
     def check_board(cls, groups):
         count = np.sum(groups, axis=1)
         count_no_zero = np.where(count==0, 3, count)

@@ -5,7 +5,7 @@ import time
 
 if __name__ == '__main__':
     game = Rummikub(2)
-    proteus = Proteus(game, './models/first_model')
+    proteus = Proteus(game)
     state = game.reset()
     while True:
         game.render()
