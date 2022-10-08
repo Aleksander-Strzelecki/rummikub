@@ -5,6 +5,7 @@ from solver import Solver
 class MonteCarloSearchTreeState():
     def __init__(self, state):
         self.state = state
+        self._reward = 0
 
     def get_legal_actions(self): 
         '''
@@ -45,9 +46,10 @@ class MonteCarloSearchTreeState():
         on your state corresponding to win,
         tie or a loss.
         '''
-        if Solver.check_board(self.state[1:,:]):
+        if Solver.check_board(self.state[1:,:]) and not np.any(self.state[0,:]):
             # TODO player tiles laid started from this state
-            pass
+            return 1
+        return 0
 
     def move(self,action):
         '''
@@ -81,6 +83,7 @@ class MonteCarloTreeSearchNode():
         self.parent_action = parent_action
         self.children = []
         self._number_of_visits = 0
+        # self._results = {}
         self._results = defaultdict(int)
         self._results[1] = 0
         self._results[-1] = 0
@@ -105,7 +108,7 @@ class MonteCarloTreeSearchNode():
     def expand(self):
 	
         action = self._untried_actions.pop()
-        next_state = self.state.move(action)
+        next_state, _ = self.state.move(action)
         child_node = MonteCarloTreeSearchNode(
             next_state, parent=self, parent_action=action)
 
@@ -118,12 +121,12 @@ class MonteCarloTreeSearchNode():
     def rollout(self):
         current_rollout_state = self.state
         
-        # while not current_rollout_state.is_game_over():
+        while not current_rollout_state.is_game_over():
+            possible_moves = current_rollout_state.get_legal_actions()
             
-        possible_moves = current_rollout_state.get_legal_actions()
-        
-        action = self.rollout_policy(possible_moves)
-        current_rollout_state = current_rollout_state.move(action)
+            action = self.rollout_policy(possible_moves)
+            current_rollout_state = current_rollout_state.move(action)
+
         return current_rollout_state.game_result()
 
     def backpropagate(self, result):
