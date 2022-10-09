@@ -3,9 +3,10 @@ from collections import defaultdict
 from solver import Solver
 
 class MonteCarloSearchTreeState():
-    def __init__(self, state):
+    def __init__(self, state, accepted=False):
         self.state = state
         self._reward = 0
+        self._accepted = accepted
 
     def get_legal_actions(self): 
         '''
@@ -27,6 +28,10 @@ class MonteCarloSearchTreeState():
             tiles_idxs = Solver.solve_no_duplicates(player, group)
             for tile_idx in tiles_idxs:
                 moves.append([0, group_idx, tile_idx])
+
+        ################## TABLE VALIDATION ####################
+        if Solver.check_board(self.state[1:,:]):
+            moves.append([100, 0, 0])
 
         return moves
 
@@ -68,10 +73,14 @@ class MonteCarloSearchTreeState():
         '''
         from_row, to_row, tile_idx = action[0], action[1], action[2]
         state_copy = self.state.copy()
-        state_copy[from_row, tile_idx] = False
-        state_copy[to_row, tile_idx] = True
+        accepted = False
+        if from_row < 100:
+            state_copy[from_row, tile_idx] = False
+            state_copy[to_row, tile_idx] = True
+        else:
+            accepted = True
 
-        return MonteCarloSearchTreeState(state_copy)
+        return MonteCarloSearchTreeState(state_copy, accepted=accepted)
 
 
 class MonteCarloTreeSearchNode():
