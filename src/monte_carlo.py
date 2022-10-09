@@ -188,7 +188,7 @@ class MonteCarloTreeSearchNode():
         if possible_moves_to_single_groups.size > 0:
             return possible_moves_to_single_groups[np.random.randint(len(possible_moves_to_single_groups))]
 
-        non_empty_current_rollout_groups_rows = np.where(tiles_in_current_rollout_groups == 1)[0] + 1
+        non_empty_current_rollout_groups_rows = np.where(tiles_in_current_rollout_groups)[0] + 1
         possible_moves_to_non_empty_groups = possible_moves_np[np.in1d(possible_moves_np[:,1], non_empty_current_rollout_groups_rows) & (possible_moves_np[:,0]==0), :]
         # add tile to group that have already one tile
         if possible_moves_to_non_empty_groups.size > 0:
