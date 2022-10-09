@@ -37,7 +37,8 @@ class MonteCarloSearchTreeState():
         and depends on your game. Returns
         true or false
         '''
-        return not np.any(self.state[0,:])
+        # end if player has no tiles or no free place on table
+        return (not np.any(self.state[0,:])) or (np.all(np.all(self.state[1:,:], axis=1)))
 
     def game_result(self):
         '''
