@@ -156,6 +156,8 @@ class MonteCarloTreeSearchNode():
             self._results_accepted[child] = self._results[child] + propagated_reward
             propagated_reward = max(self._results_accepted.values())
             self._results_accepted[child] = max(self._results_accepted[child], result)
+        elif child is None:
+            self._results_accepted[self] = result
         if self.parent:
             self.parent.backpropagate(result, child=self, propagated_reward=propagated_reward)
 
