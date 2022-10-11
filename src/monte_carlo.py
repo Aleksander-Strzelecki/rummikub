@@ -27,8 +27,11 @@ class MonteCarloSearchTreeState():
         ################ GROUP EXTENDING ####################
         for group, group_idx in zip(any_groups, any_groups_idx):
             tiles_idxs = Solver.solve_no_duplicates(player, group)
-            for tile_idx in tiles_idxs:
-                moves.append([0, group_idx+1, tile_idx])
+            tiles_idx_reshape = tiles_idxs.reshape((tiles_idxs.size, 1))
+            zeros_array = np.zeros((tiles_idx_reshape.size, 1), dtype=int)
+            group_idx_array = np.ones((tiles_idx_reshape.size, 1), dtype=int) * (group_idx+1)
+            moves.extend(np.hstack((zeros_array, group_idx_array, tiles_idx_reshape)).tolist())
+
 
         ################## TABLE VALIDATION ####################
         if Solver.check_board(self.state[1:,:]):
