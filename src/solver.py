@@ -50,7 +50,7 @@ class Solver:
     @classmethod
     def solve_manipulation(cls, groups_from, groups_to, groups_from_idxs, groups_to_idxs):
         moves = []
-        groups_tiles_with_idxs = np.vstack((Rummikub.tiles, np.arange(Rummikub.tiles_number)+1))
+        groups_tiles_with_idxs = np.vstack((Rummikub.tiles, np.arange(Rummikub.tiles_number)))
 
         for actual_idx, (group_1, group_1_idx) in enumerate(zip(groups_from, groups_from_idxs)):
             group_1_tiles_with_idxs = groups_tiles_with_idxs[:,group_1]
@@ -73,10 +73,10 @@ class Solver:
                 group_2_tiles_with_idxs = groups_tiles_with_idxs[:,group_2]
                 group_2_tiles_numbers = group_2_tiles_with_idxs[1,:]
 
-                no_joker_tile_columns = np.where(group_2[0,:] > 0)[0]
+                no_joker_tile_columns = np.where(group_2_tiles_with_idxs[0,:] > 0)[0]
                 if no_joker_tile_columns.size == 0:
                     for tile_idx in group_1_avaliable_tiles[2,:]:
-                        moves.append([group_1_idx, tile_idx, group_2_idx])
+                        moves.append([group_1_idx, group_2_idx, tile_idx])
                     continue
                 no_joker_tile_column = no_joker_tile_columns[0]
                 if np.all((group_2_tiles_with_idxs[0,:] == group_2_tiles_with_idxs[0,no_joker_tile_column]) \
@@ -103,14 +103,14 @@ class Solver:
                             & ((np.in1d(group_1_avaliable_tiles[1,:], nth_positive_smallest_value_with_joker_2)) | (np.in1d(group_1_avaliable_tiles[1,:], nth_valid_largest_value_with_joker_2))))
                         condition = (condition | condition_jokers_inner_bound)
 
-                    for tile_dx in group_1_avaliable_tiles[2,condition]:
-                        moves.append([group_1_idx, tile_idx, group_2_idx])
+                    for tile_idx in group_1_avaliable_tiles[2,condition]:
+                        moves.append([group_1_idx, group_2_idx, tile_idx])
 
                 if np.all((group_2_tiles_with_idxs[1,:] == group_2_tiles_with_idxs[1,no_joker_tile_column]) | (group_2_tiles_with_idxs[1,:] == 0)) and group_2_tiles_with_idxs.shape[1] < 4:
                     condition = (((group_1_avaliable_tiles[1,:] == group_2_tiles_with_idxs[1,no_joker_tile_column]) & (np.in1d(group_1_avaliable_tiles[0,:], group_2_tiles_with_idxs[0,:], invert=True))) \
                         | (group_1_avaliable_tiles[0,:]==0))
-                    for tile_dx in group_1_avaliable_tiles[2,condition]:
-                        moves.append([group_1_idx, tile_idx, group_2_idx])
+                    for tile_idx in group_1_avaliable_tiles[2,condition]:
+                        moves.append([group_1_idx, group_2_idx, tile_idx])
         
         return moves
 
