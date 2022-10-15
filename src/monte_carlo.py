@@ -226,7 +226,7 @@ class MonteCarloTreeSearchNode():
         return current_node
 
     def best_action(self):
-        simulation_no = 100
+        simulation_no = 20
         
         
         for i in range(simulation_no):
