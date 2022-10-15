@@ -2,6 +2,9 @@ from shutil import move
 import numpy as np
 from collections import defaultdict
 from solver import Solver
+import tensorflow as tf
+from tensorflow import keras
+from rummikub import Rummikub
 
 class MonteCarloSearchTreeState():
     def __init__(self, state, accepted=False, move_done=False):
@@ -109,6 +112,8 @@ class MonteCarloSearchTreeState():
 class MonteCarloTreeSearchNode():
 
     player_tiles_less = 0
+    state_estimate_model = None
+    groups_estimate_model = None
 
     def __init__(self, state: MonteCarloSearchTreeState, parent=None, parent_action=None):
         self.state = state
@@ -236,3 +241,56 @@ class MonteCarloTreeSearchNode():
             v.backpropagate(reward)
         
         return self.best_child(c_param=0.)
+
+    @classmethod
+    def _build_state_estimate_model(cls):
+        input_dim = Rummikub.reduced_tiles_number
+        cls.batch_size = 4
+        units = 32
+        output_size = 1
+
+        my_lstm_layer = keras.layers.LSTM(units, input_shape=(None, input_dim))
+        model = keras.models.Sequential(
+        [
+            my_lstm_layer,
+            keras.layers.BatchNormalization(),
+            keras.layers.Dense(output_size, activation='sigmoid'),
+        ]
+        )
+
+        opt = keras.optimizers.Adam(learning_rate=0.001)
+        model.compile(
+            loss='categorical_crossentropy',
+            optimizer=opt,
+            metrics=["accuracy"],
+        )
+        # model.summary()
+
+        cls.state_estimate_model = model
+
+    @classmethod
+    def _build_groups_estimate_model(cls):
+        input_dim = Rummikub.reduced_tiles_number
+        cls.batch_size = 4
+        units = 32
+        output_size = 1
+
+        # my_lstm_layer = keras.layers.LSTM(units, input_shape=(None, input_dim), return_sequences=True)
+        model = keras.models.Sequential(
+        [
+            keras.layers.Bidirectional(keras.layers.LSTM(units, return_sequences=True), \
+                input_shape=(None, input_dim)),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dense(output_size, activation='sigmoid'),
+        ]
+        )
+
+        opt = keras.optimizers.Adam(learning_rate=0.001)
+        model.compile(
+            loss='categorical_crossentropy',
+            optimizer=opt,
+            metrics=["accuracy"],
+        )
+        # model.summary()
+
+        cls.state_estimate_model = model
