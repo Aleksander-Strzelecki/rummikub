@@ -111,10 +111,12 @@ class MonteCarloSearchTreeState():
 
     def get_state(self):
         state = np.vstack([self.state[0,:], self.any_groups])
-        player_or_group = np.zeros((state.shape[0],1), dtype=bool)
+        reduce_state = np.hstack((state[:,:Rummikub.reduced_tiles_number-2] \
+                    | state[:,Rummikub.reduced_tiles_number-2:Rummikub.tiles_number-2], state[:,-2:]))
+        player_or_group = np.zeros((reduce_state.shape[0],1), dtype=bool)
         player_or_group[0] = True
-        
-        return np.hstack([player_or_group, state])
+
+        return np.expand_dims(np.hstack([player_or_group, reduce_state]), axis=0)
 
 
 class MonteCarloTreeSearchNode():
@@ -139,7 +141,8 @@ class MonteCarloTreeSearchNode():
         return
 
     def untried_actions(self):
-
+        result = self.model(self.state.get_state())
+        best_groups = np.argsort(result, axis=1).flatten()
         self._untried_actions = self.state.get_legal_actions()
         return self._untried_actions
 
@@ -252,7 +255,7 @@ class MonteCarloTreeSearchNode():
 
     @classmethod
     def _build_state_estimate_model(cls):
-        input_dim = Rummikub.reduced_tiles_number
+        input_dim = Rummikub.reduced_tiles_number+1 # one bit true if player false if group
         cls.batch_size = 4
         units = 32
         output_size = 1
@@ -266,10 +269,10 @@ class MonteCarloTreeSearchNode():
         ]
         )
 
-        opt = keras.optimizers.Adam(learning_rate=0.001)
+        # opt = keras.optimizers.Adam(learning_rate=0.001)
         model.compile(
             loss='categorical_crossentropy',
-            optimizer=opt,
+            optimizer='adam',
             metrics=["accuracy"],
         )
         # model.summary()
@@ -278,7 +281,7 @@ class MonteCarloTreeSearchNode():
 
     @classmethod
     def _build_groups_estimate_model(cls):
-        input_dim = Rummikub.reduced_tiles_number
+        input_dim = Rummikub.reduced_tiles_number+1 # one bit true if player false if group
         cls.batch_size = 4
         units = 32
         output_size = 1
@@ -293,10 +296,10 @@ class MonteCarloTreeSearchNode():
         ]
         )
 
-        opt = keras.optimizers.Adam(learning_rate=0.001)
+        # opt = keras.optimizers.Adam(learning_rate=0.001)
         model.compile(
             loss='categorical_crossentropy',
-            optimizer=opt,
+            optimizer='adam',
             metrics=["accuracy"],
         )
         # model.summary()
