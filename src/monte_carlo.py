@@ -18,6 +18,8 @@ class MonteCarloSearchTreeState():
         player = self.state[0,:]
         groups = self.state[1:,:]
         any_groups_mask = np.any(groups, axis=1)
+        any_groups_no_empty_group_idxs = np.where(any_groups_mask)[0]
+        any_groups_no_empty_group = groups[any_groups_mask,:]
         if not np.all(any_groups_mask):
             any_groups_mask[np.where(any_groups_mask==False)[0][0]] = True  # add one empty group to evaluation only if place on board
         any_groups_idx = np.where(any_groups_mask)[0]
@@ -30,6 +32,10 @@ class MonteCarloSearchTreeState():
             for tile_idx in tiles_idxs:
                 moves.append([0, group_idx+1, tile_idx])
 
+        ############### GROUP MANIPULATION ##################
+        moves.extend(Solver.solve_manipulation(any_groups_no_empty_group, any_groups, \
+            any_groups_no_empty_group_idxs+1, any_groups_idx+1))
+        
         ################## TABLE VALIDATION ####################
         if Solver.check_board(self.state[1:,:]):
             moves.append([100, 0, 0])
@@ -139,14 +145,16 @@ class MonteCarloTreeSearchNode():
 
     def rollout(self):
         current_rollout_state = self.state
+        counter = 0
         
-        while not current_rollout_state.is_game_over():
+        while not current_rollout_state.is_game_over() and counter < 20:
             possible_moves = current_rollout_state.get_legal_actions()
             if possible_moves == []:
                 break
             
             action = self.rollout_policy(possible_moves, current_rollout_state)
             current_rollout_state, _ = current_rollout_state.move(action)
+            counter += 1
 
         return current_rollout_state.game_result()
 
