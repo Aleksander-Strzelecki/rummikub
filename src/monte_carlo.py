@@ -29,6 +29,7 @@ class MonteCarloSearchTreeState():
             any_groups_mask[np.where(any_groups_mask==False)[0][0]] = True  # add one empty group to evaluation only if place on board
         any_groups_idx = np.where(any_groups_mask)[0]
         any_groups = groups[any_groups_mask,:]
+        self.any_groups = any_groups
 
         moves = []
         ################ GROUP EXTENDING ####################
@@ -107,6 +108,13 @@ class MonteCarloSearchTreeState():
             accepted = True
 
         return MonteCarloSearchTreeState(state_copy, accepted=accepted, move_done=move_done), reward
+
+    def get_state(self):
+        state = np.vstack([self.state[0,:], self.any_groups])
+        player_or_group = np.zeros((state.shape[0],1), dtype=bool)
+        player_or_group[0] = True
+        
+        return np.hstack([player_or_group, state])
 
 
 class MonteCarloTreeSearchNode():
