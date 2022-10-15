@@ -1,12 +1,14 @@
+from shutil import move
 import numpy as np
 from collections import defaultdict
 from solver import Solver
 
 class MonteCarloSearchTreeState():
-    def __init__(self, state, accepted=False):
+    def __init__(self, state, accepted=False, move_done=False):
         self.state = state
         self._accepted = accepted
         self.no_moves = False
+        self.move_done = move_done
 
     def get_legal_actions(self): 
         '''
@@ -33,12 +35,14 @@ class MonteCarloSearchTreeState():
                 moves.append([0, group_idx+1, tile_idx])
 
         ############### GROUP MANIPULATION ##################
-        moves.extend(Solver.solve_manipulation(any_groups_no_empty_group, any_groups, \
-            any_groups_no_empty_group_idxs+1, any_groups_idx+1))
+        # moves.extend(Solver.solve_manipulation(any_groups_no_empty_group, any_groups, \
+        #     any_groups_no_empty_group_idxs+1, any_groups_idx+1))
         
         ################## TABLE VALIDATION ####################
-        if Solver.check_board(self.state[1:,:]):
+        if Solver.check_board(self.state[1:,:]) and self.move_done:
             moves.append([100, 0, 0])
+        elif Solver.check_board(self.state[1:,:]) and not self.move_done:
+            moves.append([101,0,0])
 
         if moves == []:
             self.no_moves = True
@@ -62,11 +66,13 @@ class MonteCarloSearchTreeState():
         on your state corresponding to win,
         tie or a loss.
         '''
-        if Solver.check_board(self.state[1:,:]) and not np.any(self.state[0,:]):
+        # if Solver.check_board(self.state[1:,:]) and not np.any(self.state[0,:]):
             # TODO player tiles laid started from this state
+            # return 1
+        if self._accepted and self.move_done:
             return 1
         elif self._accepted:
-            return 0.5
+            return 0.2
         return 0
 
     def move(self,action):
@@ -85,8 +91,10 @@ class MonteCarloSearchTreeState():
         '''
         from_row, to_row, tile_idx = action[0], action[1], action[2]
         reward = 0
+        move_done = self.move_done
         if from_row == 0:
             reward = 1
+            move_done = True
         state_copy = self.state.copy()
         accepted = False
         if from_row < 100:
@@ -95,7 +103,7 @@ class MonteCarloSearchTreeState():
         else:
             accepted = True
 
-        return MonteCarloSearchTreeState(state_copy, accepted=accepted), reward
+        return MonteCarloSearchTreeState(state_copy, accepted=accepted, move_done=move_done), reward
 
 
 class MonteCarloTreeSearchNode():
