@@ -7,6 +7,7 @@ if __name__ == '__main__':
     game = Rummikub(2)
     state = game.reset()
     mc_state = monte_carlo.MonteCarloSearchTreeState(state)
+    monte_carlo.MonteCarloTreeSearchNode.create_models()
     while True:
         game.render()
         root = monte_carlo.MonteCarloTreeSearchNode(state = mc_state)

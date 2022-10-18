@@ -8,14 +8,11 @@ from rummikub import Rummikub
 
 class RolloutState():
     @staticmethod
-    def get_rollout_state(self):
-        state = np.vstack([self.state[0,:], self.any_groups])
-        reduce_state = np.hstack((state[:,:Rummikub.reduced_tiles_number-2] \
-                    | state[:,Rummikub.reduced_tiles_number-2:Rummikub.tiles_number-2], state[:,-2:]))
-        player_or_group = np.zeros((reduce_state.shape[0],1), dtype=bool)
+    def get_rollout_state(state):
+        player_or_group = np.zeros((state.shape[0],1), dtype=bool)
         player_or_group[0] = True
 
-        return np.expand_dims(np.hstack([player_or_group, reduce_state]), axis=0)
+        return np.expand_dims(np.hstack([player_or_group, state]), axis=0)
 
 class MonteCarloSearchTreeState():
     def __init__(self, state, accepted=False, move_done=False):
@@ -198,9 +195,11 @@ class MonteCarloTreeSearchNode():
         if child and result > 0:
             self._results_accepted[child] = self._results[child] + propagated_reward
             propagated_reward = max(self._results_accepted.values())
+            self.state_estimate_model.fit(RolloutState.get_rollout_state(self.state.state), np.array([[1/(1 + np.exp(3-0.5*propagated_reward))]]))
             self._results_accepted[child] = max(self._results_accepted[child], result)
         elif child is None:
             self._results_accepted[self] = result
+            self.state_estimate_model.fit(RolloutState.get_rollout_state(self.state.state), np.array([[1/(1 + np.exp(3-0.5*result))]]))
         if self.parent:
             self.parent.backpropagate(result, child=self, propagated_reward=propagated_reward)
 
@@ -213,22 +212,23 @@ class MonteCarloTreeSearchNode():
         return self.children[np.argmax(choices_weights)]
 
     def rollout_policy(self, possible_moves, current_rollout_state):
-    
+        state_estimation = []
         possible_moves_np = np.array(possible_moves)
         if 100 in possible_moves_np[:,0]:
             return [100, 0, 0]
         possible_rollout_states = self._get_possible_rollout_states(current_rollout_state, possible_moves)
         for rollout_state in possible_rollout_states:
-            self.state_estimate_model(RolloutState.get_rollout_state(rollout_state))
+            state_estimation.append(self.state_estimate_model(RolloutState.get_rollout_state(rollout_state)))
+        state_distribution = (np.array(state_estimation) / np.sum(state_estimation)).flatten()
 
-        return possible_moves[np.random.randint(len(possible_moves))]
+        rng = np.random.default_rng()
+        return rng.choice(possible_moves_np, p=state_distribution, axis=0)
 
     def _get_possible_rollout_states(self, current_rollout_state, possible_moves):
-        actual_state = current_rollout_state
         possible_rollout_states = []
         for move in possible_moves:
             from_row, to_row, tile_idx = move[0], move[1], move[2]
-            state_copy = actual_state.copy()
+            state_copy = current_rollout_state.state.copy()
             if from_row < 100:
                 state_copy[from_row, tile_idx] = False
                 state_copy[to_row, tile_idx] = True
@@ -260,16 +260,19 @@ class MonteCarloTreeSearchNode():
         return self.best_child(c_param=0.)
 
     @classmethod
+    def create_models(cls):
+        cls._build_groups_estimate_model()
+        cls._build_state_estimate_model()
+
+    @classmethod
     def _build_state_estimate_model(cls):
-        input_dim = Rummikub.reduced_tiles_number+1 # one bit true if player false if group
+        input_dim = Rummikub.tiles_number+1 # one bit true if player false if group
         cls.batch_size = 4
         units = 32
         output_size = 1
 
-        # my_lstm_layer = keras.layers.LSTM(units, input_shape=(None, input_dim))
         model = keras.models.Sequential(
         [
-            # my_lstm_layer,
             keras.layers.Bidirectional(keras.layers.LSTM(units), \
                 input_shape=(None, input_dim)),
             keras.layers.BatchNormalization(),
@@ -277,24 +280,21 @@ class MonteCarloTreeSearchNode():
         ]
         )
 
-        # opt = keras.optimizers.Adam(learning_rate=0.001)
         model.compile(
-            loss='categorical_crossentropy',
+            loss='mean_squared_error',
             optimizer='adam',
             metrics=["accuracy"],
         )
-        # model.summary()
 
         cls.state_estimate_model = model
 
     @classmethod
     def _build_groups_estimate_model(cls):
-        input_dim = Rummikub.reduced_tiles_number+1 # one bit true if player false if group
+        input_dim = Rummikub.tiles_number+1 # one bit true if player false if group
         cls.batch_size = 4
         units = 32
         output_size = 1
 
-        # my_lstm_layer = keras.layers.LSTM(units, input_shape=(None, input_dim), return_sequences=True)
         model = keras.models.Sequential(
         [
             keras.layers.Bidirectional(keras.layers.LSTM(units, return_sequences=True), \
@@ -304,12 +304,10 @@ class MonteCarloTreeSearchNode():
         ]
         )
 
-        # opt = keras.optimizers.Adam(learning_rate=0.001)
         model.compile(
             loss='categorical_crossentropy',
             optimizer='adam',
             metrics=["accuracy"],
         )
-        # model.summary()
 
-        cls.state_estimate_model = model
+        cls.groups_estimate_model = model
