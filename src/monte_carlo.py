@@ -6,6 +6,17 @@ import tensorflow as tf
 from tensorflow import keras
 from rummikub import Rummikub
 
+class RolloutState():
+    @staticmethod
+    def get_rollout_state(self):
+        state = np.vstack([self.state[0,:], self.any_groups])
+        reduce_state = np.hstack((state[:,:Rummikub.reduced_tiles_number-2] \
+                    | state[:,Rummikub.reduced_tiles_number-2:Rummikub.tiles_number-2], state[:,-2:]))
+        player_or_group = np.zeros((reduce_state.shape[0],1), dtype=bool)
+        player_or_group[0] = True
+
+        return np.expand_dims(np.hstack([player_or_group, reduce_state]), axis=0)
+
 class MonteCarloSearchTreeState():
     def __init__(self, state, accepted=False, move_done=False):
         self.state = state
@@ -141,8 +152,8 @@ class MonteCarloTreeSearchNode():
         return
 
     def untried_actions(self):
-        result = self.model(self.state.get_state())
-        best_groups = np.argsort(result, axis=1).flatten()
+        # result = self.model(self.state.get_state())
+        # best_groups = np.argsort(result, axis=1).flatten()
         self._untried_actions = self.state.get_legal_actions()
         return self._untried_actions
 
@@ -206,29 +217,24 @@ class MonteCarloTreeSearchNode():
         possible_moves_np = np.array(possible_moves)
         if 100 in possible_moves_np[:,0]:
             return [100, 0, 0]
-        current_rollout_groups = current_rollout_state.state[1:,:]
-        # non_empty_current_rollout_groups = current_rollout_groups[np.any(current_rollout_groups, axis=1),:]
-        tiles_in_current_rollout_groups = np.sum(current_rollout_groups, axis=1)
-        
-        double_current_rollout_groups_rows = np.where(tiles_in_current_rollout_groups == 2)[0] + 1
-        possible_moves_to_double_groups = possible_moves_np[np.in1d(possible_moves_np[:,1], double_current_rollout_groups_rows) & (possible_moves_np[:,0]==0), :]
-        # add tile to group that have already two tiles
-        if possible_moves_to_double_groups.size > 0:
-            return possible_moves_to_double_groups[np.random.randint(len(possible_moves_to_double_groups))]
-                
-        single_current_rollout_groups_rows = np.where(tiles_in_current_rollout_groups == 1)[0] + 1
-        possible_moves_to_single_groups = possible_moves_np[np.in1d(possible_moves_np[:,1], single_current_rollout_groups_rows) & (possible_moves_np[:,0]==0), :]
-        # add tile to group that have already one tile
-        if possible_moves_to_single_groups.size > 0:
-            return possible_moves_to_single_groups[np.random.randint(len(possible_moves_to_single_groups))]
-
-        non_empty_current_rollout_groups_rows = np.where(tiles_in_current_rollout_groups)[0] + 1
-        possible_moves_to_non_empty_groups = possible_moves_np[np.in1d(possible_moves_np[:,1], non_empty_current_rollout_groups_rows) & (possible_moves_np[:,0]==0), :]
-        # add tile to group that have already one tile
-        if possible_moves_to_non_empty_groups.size > 0:
-            return possible_moves_to_non_empty_groups[np.random.randint(len(possible_moves_to_non_empty_groups))]
+        possible_rollout_states = self._get_possible_rollout_states(current_rollout_state, possible_moves)
+        for rollout_state in possible_rollout_states:
+            self.state_estimate_model(RolloutState.get_rollout_state(rollout_state))
 
         return possible_moves[np.random.randint(len(possible_moves))]
+
+    def _get_possible_rollout_states(self, current_rollout_state, possible_moves):
+        actual_state = current_rollout_state
+        possible_rollout_states = []
+        for move in possible_moves:
+            from_row, to_row, tile_idx = move[0], move[1], move[2]
+            state_copy = actual_state.copy()
+            if from_row < 100:
+                state_copy[from_row, tile_idx] = False
+                state_copy[to_row, tile_idx] = True
+            possible_rollout_states.append(state_copy)
+
+        return possible_rollout_states
 
     def _tree_policy(self):
 
@@ -260,10 +266,12 @@ class MonteCarloTreeSearchNode():
         units = 32
         output_size = 1
 
-        my_lstm_layer = keras.layers.LSTM(units, input_shape=(None, input_dim))
+        # my_lstm_layer = keras.layers.LSTM(units, input_shape=(None, input_dim))
         model = keras.models.Sequential(
         [
-            my_lstm_layer,
+            # my_lstm_layer,
+            keras.layers.Bidirectional(keras.layers.LSTM(units), \
+                input_shape=(None, input_dim)),
             keras.layers.BatchNormalization(),
             keras.layers.Dense(output_size, activation='sigmoid'),
         ]
