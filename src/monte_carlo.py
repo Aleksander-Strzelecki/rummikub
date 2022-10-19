@@ -172,6 +172,7 @@ class MonteCarloTreeSearchNode():
     def expand(self):
 	
         action = self._untried_actions_with_groups.pop()
+        self._untried_actions.remove(action)
         next_state, reward, reward_train = self.state.move(action)
         child_node = MonteCarloTreeSearchNode(
             next_state, parent=self, parent_action=action)
