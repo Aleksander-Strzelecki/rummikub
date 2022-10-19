@@ -221,7 +221,7 @@ class MonteCarloTreeSearchNode():
     def is_fully_expanded(self):
         probable_pair = self._get_probable_groups_pair()
         self._untried_actions_with_groups = self._get_untried_actions_with_groups(probable_pair)
-        return self._untried_actions_with_groups.size == 0
+        return len(self._untried_actions_with_groups) == 0
 
     def best_child(self, c_param=0.1):
     
