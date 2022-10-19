@@ -1,10 +1,10 @@
-from shutil import move
 import numpy as np
 from collections import defaultdict
 from solver import Solver
 import tensorflow as tf
 from tensorflow import keras
 from rummikub import Rummikub
+from dataset import DataSet
 
 class RolloutState():
     @staticmethod
@@ -103,10 +103,13 @@ class MonteCarloSearchTreeState():
         '''
         from_row, to_row, tile_idx = action[0], action[1], action[2]
         reward = 0
+        groups_extended = 0
         move_done = self.move_done
         if from_row == 0:
             reward = 1
             move_done = True
+            if np.any(self.state[to_row,:]):
+                groups_extended = 1
         state_copy = self.state.copy()
         accepted = False
         if from_row < 100:
@@ -115,7 +118,7 @@ class MonteCarloSearchTreeState():
         else:
             accepted = True
 
-        return MonteCarloSearchTreeState(state_copy, accepted=accepted, move_done=move_done), reward
+        return MonteCarloSearchTreeState(state_copy, accepted=accepted, move_done=move_done), reward, groups_extended
 
     def get_state(self):
         state = np.vstack([self.state[0,:], self.any_groups])
@@ -139,18 +142,14 @@ class MonteCarloTreeSearchNode():
         self.parent_action = parent_action
         self.children = []
         self._number_of_visits = 0
-        # self._results = {}
         self._results = defaultdict(int)
+        self._groups_extended = 0
         self._results_accepted = defaultdict(int)
-        # self._results[1] = 0
-        # self._results[-1] = 0
         self._untried_actions = None
         self._untried_actions = self.untried_actions()
         return
 
     def untried_actions(self):
-        # result = self.model(self.state.get_state())
-        # best_groups = np.argsort(result, axis=1).flatten()
         self._untried_actions = self.state.get_legal_actions()
         return self._untried_actions
 
@@ -164,10 +163,11 @@ class MonteCarloTreeSearchNode():
     def expand(self):
 	
         action = self._untried_actions.pop()
-        next_state, reward = self.state.move(action)
+        next_state, reward, reward_train = self.state.move(action)
         child_node = MonteCarloTreeSearchNode(
             next_state, parent=self, parent_action=action)
-        self._results[child_node] += reward
+        self._results[child_node] = reward
+        self._groups_extended = reward_train
 
         self.children.append(child_node)
         return child_node
@@ -185,23 +185,29 @@ class MonteCarloTreeSearchNode():
                 break
             
             action = self.rollout_policy(possible_moves, current_rollout_state)
-            current_rollout_state, _ = current_rollout_state.move(action)
+            current_rollout_state, _, _ = current_rollout_state.move(action)
             counter += 1
 
         return current_rollout_state.game_result()
 
-    def backpropagate(self, result, child=None, propagated_reward=0):
+    def backpropagate(self, result, child=None, propagated_reward=0, dataset:DataSet=None):
+        if dataset is None:
+            dataset = DataSet()
+
         self._number_of_visits += 1.
         if child and result > 0:
             self._results_accepted[child] = self._results[child] + propagated_reward
             propagated_reward = max(self._results_accepted.values())
-            self.state_estimate_model.fit(RolloutState.get_rollout_state(self.state.state), np.array([[1/(1 + np.exp(3-0.5*propagated_reward))]]))
             self._results_accepted[child] = max(self._results_accepted[child], result)
         elif child is None:
             self._results_accepted[self] = result
-            self.state_estimate_model.fit(RolloutState.get_rollout_state(self.state.state), np.array([[1/(1 + np.exp(3-0.5*result))]]))
+        result_train = self._get_result_train()
+        dataset.extend_dataset(RolloutState.get_rollout_state(self.state.state), np.array([[1/(1 + np.exp(3-0.5*result_train))]]))
         if self.parent:
-            self.parent.backpropagate(result, child=self, propagated_reward=propagated_reward)
+            self.parent.backpropagate(result, child=self, propagated_reward=propagated_reward, dataset=dataset)
+        else:
+            x_train, y_train = dataset.get_data()
+            self.state_estimate_model.fit(x_train, y_train)
 
     def is_fully_expanded(self):
         return len(self._untried_actions) == 0
@@ -221,8 +227,9 @@ class MonteCarloTreeSearchNode():
             state_estimation.append(self.state_estimate_model(RolloutState.get_rollout_state(rollout_state)))
         state_distribution = (np.array(state_estimation) / np.sum(state_estimation)).flatten()
 
-        rng = np.random.default_rng()
-        return rng.choice(possible_moves_np, p=state_distribution, axis=0)
+        # rng = np.random.default_rng()
+        # return rng.choice(possible_moves_np, p=state_distribution, axis=0)
+        return possible_moves_np[np.argmax(state_estimation)]
 
     def _get_possible_rollout_states(self, current_rollout_state, possible_moves):
         possible_rollout_states = []
@@ -247,8 +254,14 @@ class MonteCarloTreeSearchNode():
                 current_node = current_node.best_child()
         return current_node
 
+    def _get_result_train(self):
+        if self._results_accepted:
+            return max(max(self._results_accepted.values()), self._groups_extended)
+        else:
+            return self._groups_extended
+
     def best_action(self):
-        simulation_no = 20
+        simulation_no = 150
         
         
         for i in range(simulation_no):
