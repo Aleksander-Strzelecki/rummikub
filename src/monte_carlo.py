@@ -21,6 +21,10 @@ class MonteCarloSearchTreeState():
         self.no_moves = False
         self.move_done = move_done
 
+        self.any_groups_one_empty = None
+        self.any_groups_one_empty_idx = None
+        self._set_groups_one_empty()
+
     def get_legal_actions(self): 
         '''
         Modify according to your game or
@@ -29,19 +33,9 @@ class MonteCarloSearchTreeState():
         Returns a list.
         '''
         player = self.state[0,:]
-        groups = self.state[1:,:]
-        any_groups_mask = np.any(groups, axis=1)
-        any_groups_no_empty_group_idxs = np.where(any_groups_mask)[0]
-        any_groups_no_empty_group = groups[any_groups_mask,:]
-        if not np.all(any_groups_mask):
-            any_groups_mask[np.where(any_groups_mask==False)[0][0]] = True  # add one empty group to evaluation only if place on board
-        any_groups_idx = np.where(any_groups_mask)[0]
-        any_groups = groups[any_groups_mask,:]
-        self.any_groups = any_groups
-
         moves = []
         ################ GROUP EXTENDING ####################
-        for group, group_idx in zip(any_groups, any_groups_idx):
+        for group, group_idx in zip(self.any_groups_one_empty, self.any_groups_one_empty_idx):
             tiles_idxs = Solver.solve_no_duplicates(player, group)
             for tile_idx in tiles_idxs:
                 moves.append([0, group_idx+1, tile_idx])
@@ -120,14 +114,23 @@ class MonteCarloSearchTreeState():
 
         return MonteCarloSearchTreeState(state_copy, accepted=accepted, move_done=move_done), reward, groups_extended
 
-    def get_state(self):
-        state = np.vstack([self.state[0,:], self.any_groups])
-        reduce_state = np.hstack((state[:,:Rummikub.reduced_tiles_number-2] \
-                    | state[:,Rummikub.reduced_tiles_number-2:Rummikub.tiles_number-2], state[:,-2:]))
-        player_or_group = np.zeros((reduce_state.shape[0],1), dtype=bool)
+    def get_state_groups_one_empty(self):
+        state = np.vstack([self.state[0,:], self.any_groups_one_empty])
+        player_or_group = np.zeros((state.shape[0],1), dtype=bool)
         player_or_group[0] = True
 
-        return np.expand_dims(np.hstack([player_or_group, reduce_state]), axis=0)
+        return np.expand_dims(np.hstack([player_or_group, state]), axis=0)
+
+    def get_state_groups_one_empty_idx(self):
+        return np.concatenate(([0], self.any_groups_one_empty_idx+1))
+
+    def _set_groups_one_empty(self):
+        groups = self.state[1:,:]
+        any_groups_mask = np.any(groups, axis=1)
+        if not np.all(any_groups_mask):
+            any_groups_mask[np.where(any_groups_mask==False)[0][0]] = True  # add one empty group to evaluation only if place on board
+        self.any_groups_one_empty_idx = np.where(any_groups_mask)[0]
+        self.any_groups_one_empty = groups[any_groups_mask,:]
 
 
 class MonteCarloTreeSearchNode():
@@ -141,12 +144,18 @@ class MonteCarloTreeSearchNode():
         self.parent = parent
         self.parent_action = parent_action
         self.children = []
+        self.rng = np.random.default_rng()
         self._number_of_visits = 0
         self._results = defaultdict(int)
         self._groups_extended = 0
         self._results_accepted = defaultdict(int)
         self._untried_actions = None
         self._untried_actions = self.untried_actions()
+        self._untried_actions_with_groups = None
+        self._untried_actions_with_groups = self._get_untried_actions_with_groups(np.array([0,1]))
+        self._groups_estimation = self.groups_estimate_model(self.state.get_state_groups_one_empty())
+        self._groups_estimation_idx = self.state.get_state_groups_one_empty_idx()
+        self._groups_distribution = (np.array(self._groups_estimation) / np.sum(self._groups_estimation)).flatten()
         return
 
     def untried_actions(self):
@@ -162,7 +171,7 @@ class MonteCarloTreeSearchNode():
 
     def expand(self):
 	
-        action = self._untried_actions.pop()
+        action = self._untried_actions_with_groups.pop()
         next_state, reward, reward_train = self.state.move(action)
         child_node = MonteCarloTreeSearchNode(
             next_state, parent=self, parent_action=action)
@@ -202,7 +211,7 @@ class MonteCarloTreeSearchNode():
         elif child is None:
             self._results_accepted[self] = result
         result_train = self._get_result_train()
-        dataset.extend_dataset(RolloutState.get_rollout_state(self.state.state), np.array([[1/(1 + np.exp(3-0.5*result_train))]]))
+        dataset.extend_dataset(RolloutState.get_rollout_state(self.state.state), np.array([[1/(1 + np.exp(-0.5*result_train))]]))
         if self.parent:
             self.parent.backpropagate(result, child=self, propagated_reward=propagated_reward, dataset=dataset)
         else:
@@ -210,7 +219,9 @@ class MonteCarloTreeSearchNode():
             self.state_estimate_model.fit(x_train, y_train)
 
     def is_fully_expanded(self):
-        return len(self._untried_actions) == 0
+        probable_pair = self._get_probable_groups_pair()
+        self._untried_actions_with_groups = self._get_untried_actions_with_groups(probable_pair)
+        return self._untried_actions_with_groups.size == 0
 
     def best_child(self, c_param=0.1):
     
@@ -227,9 +238,8 @@ class MonteCarloTreeSearchNode():
             state_estimation.append(self.state_estimate_model(RolloutState.get_rollout_state(rollout_state)))
         state_distribution = (np.array(state_estimation) / np.sum(state_estimation)).flatten()
 
-        # rng = np.random.default_rng()
-        # return rng.choice(possible_moves_np, p=state_distribution, axis=0)
-        return possible_moves_np[np.argmax(state_estimation)]
+        return self.rng.choice(possible_moves_np, p=state_distribution, axis=0)
+        # return possible_moves_np[np.argmax(state_estimation)]
 
     def _get_possible_rollout_states(self, current_rollout_state, possible_moves):
         possible_rollout_states = []
@@ -259,6 +269,15 @@ class MonteCarloTreeSearchNode():
             return max(max(self._results_accepted.values()), self._groups_extended)
         else:
             return self._groups_extended
+
+    def _get_probable_groups_pair(self):
+        return self.rng.choice(self._groups_estimation_idx, 2, replace=False, p=self._groups_distribution, axis=0)
+
+    def _get_untried_actions_with_groups(self, probable_pair):
+        untried_actions_np = np.array(self._untried_actions)
+        mask = (np.in1d(untried_actions_np[:,0], probable_pair) | np.in1d(untried_actions_np[:,1], probable_pair))
+        
+        return untried_actions_np[mask,:].tolist()
 
     def best_action(self):
         simulation_no = 150
