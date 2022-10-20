@@ -218,18 +218,16 @@ class MonteCarloTreeSearchNode():
         return self.children[np.argmax(choices_weights)]
 
     def rollout_policy(self, possible_moves, current_rollout_state):
-        state_estimation = []
         possible_moves_np = np.array(possible_moves)
         if 100 in possible_moves_np[:,0]:
             return [100, 0, 0]
         possible_rollout_states = self._get_possible_rollout_states(current_rollout_state, possible_moves)
-        for rollout_state in possible_rollout_states:
-            state_estimation.append(self.state_estimate_model(RolloutState.get_rollout_state(rollout_state)))
+        state_estimation = self.state_estimate_model.predict(possible_rollout_states)
         state_distribution = (np.array(state_estimation) / np.sum(state_estimation)).flatten()
 
-        # rng = np.random.default_rng()
-        # return rng.choice(possible_moves_np, p=state_distribution, axis=0)
-        return possible_moves_np[np.argmax(state_estimation)]
+        rng = np.random.default_rng()
+        return rng.choice(possible_moves_np, p=state_distribution, axis=0)
+        # return possible_moves_np[np.argmax(state_estimation)]
 
     def _get_possible_rollout_states(self, current_rollout_state, possible_moves):
         possible_rollout_states = []
@@ -239,9 +237,9 @@ class MonteCarloTreeSearchNode():
             if from_row < 100:
                 state_copy[from_row, tile_idx] = False
                 state_copy[to_row, tile_idx] = True
-            possible_rollout_states.append(state_copy)
+            possible_rollout_states.extend(RolloutState.get_rollout_state(state_copy))
 
-        return possible_rollout_states
+        return np.array(possible_rollout_states)
 
     def _tree_policy(self):
 
