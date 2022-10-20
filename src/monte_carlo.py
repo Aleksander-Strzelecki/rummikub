@@ -209,6 +209,8 @@ class MonteCarloTreeSearchNode():
             x_train, y_train = dataset.get_data()
             self.state_estimate_model.fit(x_train, y_train)
 
+        return dataset
+
     def is_fully_expanded(self):
         return len(self._untried_actions) == 0
 
@@ -260,13 +262,14 @@ class MonteCarloTreeSearchNode():
 
     def best_action(self):
         simulation_no = 150
-        
+        dataset = DataSet()
         
         for i in range(simulation_no):
             
             v = self._tree_policy()
             reward = v.rollout()
-            v.backpropagate(reward)
+            dataset = v.backpropagate(reward, dataset=dataset)
+            dataset.shrink(1000)
         
         return self.best_child(c_param=0.)
 

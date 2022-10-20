@@ -11,3 +11,11 @@ class DataSet():
 
     def get_data(self):
         return np.array(self.x), np.array(self.y)
+
+    def shrink(self, size):
+        x_np = np.array(self.x)
+        y_np = np.array(self.y)
+        x_np = x_np[-size:]
+        y_np = y_np[-size:]
+        self.x = x_np.tolist()
+        self.y = y_np.tolist()
