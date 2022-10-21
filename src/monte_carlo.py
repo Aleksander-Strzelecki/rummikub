@@ -182,6 +182,14 @@ class MonteCarloTreeSearchNode():
     def rollout(self):
         current_rollout_state = self.state
         counter = 0
+        actions_to_return = None
+        actions_table = []
+
+        current_node = self
+        actions_table.append(current_node.parent_action)
+        while current_node.parent:
+            actions_table.insert(0, current_node.parent_action)
+            current_node = current_node.parent
         
         while not current_rollout_state.is_game_over() and counter < 20:
             possible_moves = current_rollout_state.get_legal_actions()
@@ -192,7 +200,12 @@ class MonteCarloTreeSearchNode():
             current_rollout_state, _, _ = current_rollout_state.move(action)
             counter += 1
 
-        return current_rollout_state.game_result()
+            actions_table.append(action)
+        
+        if actions_table[-1] == [100,0,0]:
+            actions_to_return = actions_table
+
+        return current_rollout_state.game_result(), actions_to_return
 
     def backpropagate(self, result, child=None, propagated_reward=0, dataset:DataSet=None):
         if dataset is None:
@@ -265,18 +278,33 @@ class MonteCarloTreeSearchNode():
         else:
             return self._groups_extended
 
-    def best_action(self):
-        simulation_no = 20
+    def best_actions(self):
+        simulation_no = 200
         dataset = DataSet()
-        
+        actions = []
+        spare_actions = []
+
         for i in range(simulation_no):
-            
+            #TODO save success actions from rollout
             v = self._tree_policy()
-            reward = v.rollout()
+            reward, rollout_actions = v.rollout()
+            if rollout_actions:
+                spare_actions.extend(rollout_actions)
             dataset = v.backpropagate(reward, dataset=dataset)
             dataset.shrink(self.BUFFER_SIZE)
         
-        return self.best_child(c_param=0., ann_param=0., verbose=True)
+        child = self.best_child(c_param=0., ann_param=0., verbose=True)
+        actions.append(child.parent_action)
+        while child.children:
+            child = self.best_child(c_param=0., ann_param=0., verbose=True)
+            actions.append(child.parent_action)
+
+        if actions[-1] == [100,0,0]:
+            return actions
+        elif spare_actions:
+            return spare_actions[-1]
+        else:
+            return [101,0,0]
 
     def _get_probable_untried_action(self):
         state_distribution = self._get_state_distribution(self._untried_states_ann)
