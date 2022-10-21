@@ -109,7 +109,7 @@ class MonteCarloSearchTreeState():
             reward = 1
             move_done = True
             if np.any(self.state[to_row,:]):
-                groups_extended = 1
+                groups_extended = 0.7
         state_copy = self.state.copy()
         accepted = False
         if from_row < 100:
