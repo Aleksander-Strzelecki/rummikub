@@ -135,6 +135,7 @@ class MonteCarloTreeSearchNode():
     player_tiles_less = 0
     state_estimate_model = None
     groups_estimate_model = None
+    BUFFER_SIZE = 100
 
     def __init__(self, state: MonteCarloSearchTreeState, parent=None, parent_action=None):
         self.state = state
@@ -269,7 +270,7 @@ class MonteCarloTreeSearchNode():
             v = self._tree_policy()
             reward = v.rollout()
             dataset = v.backpropagate(reward, dataset=dataset)
-            dataset.shrink(1000)
+            dataset.shrink(self.BUFFER_SIZE)
         
         return self.best_child(c_param=0.)
 
