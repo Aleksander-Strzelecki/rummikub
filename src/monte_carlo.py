@@ -157,7 +157,9 @@ class MonteCarloTreeSearchNode():
 
     # TODO Modify q for my purpose
     def q(self):
-        return max(self._results_accepted.values())
+        if self._results_accepted:
+            return max(self._results_accepted.values())
+        return 0
 
     def n(self):
         return self._number_of_visits
@@ -187,6 +189,7 @@ class MonteCarloTreeSearchNode():
 
         current_node = self
         actions_table.append(current_node.parent_action)
+        current_node = current_node.parent
         while current_node.parent:
             actions_table.insert(0, current_node.parent_action)
             current_node = current_node.parent
@@ -200,7 +203,7 @@ class MonteCarloTreeSearchNode():
             current_rollout_state, _, _ = current_rollout_state.move(action)
             counter += 1
 
-            actions_table.append(action)
+            actions_table.append(action.tolist())
         
         if actions_table[-1] == [100,0,0]:
             actions_to_return = actions_table
@@ -234,7 +237,7 @@ class MonteCarloTreeSearchNode():
     def best_child(self, c_param=0.1, ann_param=1.0, verbose=False):
         children_estimation_ann = self.state_estimate_model.predict(self._untried_states_ann)
 
-        choices_weights = [(c.q() / c.n()) + c_param * np.sqrt((2 * np.log(self.n()) / c.n())) + ann_param * ann_estimation\
+        choices_weights = [c.q() + c_param * np.sqrt((2 * np.log(self.n()) / c.n())) + ann_param * ann_estimation\
              for c, ann_estimation in zip(self.children, children_estimation_ann)]
         if verbose:
             print(self._results_accepted)
