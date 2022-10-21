@@ -6,9 +6,9 @@ from tensorflow import keras
 from rummikub import Rummikub
 from dataset import DataSet
 
-class RolloutState():
+class StateANN():
     @staticmethod
-    def get_rollout_state(state):
+    def get_state_ann(state):
         player_or_group = np.zeros((state.shape[0],1), dtype=bool)
         player_or_group[0] = True
 
@@ -148,6 +148,7 @@ class MonteCarloTreeSearchNode():
         self._results_accepted = defaultdict(int)
         self._untried_actions = None
         self._untried_actions = self.untried_actions()
+        self._untried_states_ann = self._get_possible_states(self.state, self._untried_actions)
         return
 
     def untried_actions(self):
@@ -163,12 +164,12 @@ class MonteCarloTreeSearchNode():
 
     def expand(self):
 	
-        action = self._untried_actions.pop()
-        next_state, reward, reward_train = self.state.move(action)
+        action = self._get_probable_untried_action()
+        next_state, reward, group_extended_reward = self.state.move(action)
         child_node = MonteCarloTreeSearchNode(
             next_state, parent=self, parent_action=action)
         self._results[child_node] = reward
-        self._groups_extended = reward_train
+        self._groups_extended = group_extended_reward
 
         self.children.append(child_node)
         return child_node
@@ -203,7 +204,7 @@ class MonteCarloTreeSearchNode():
         elif child is None:
             self._results_accepted[self] = result
         result_train = self._get_result_train()
-        dataset.extend_dataset(RolloutState.get_rollout_state(self.state.state), np.array([[1/(1 + np.exp(3-0.5*result_train))]]))
+        dataset.extend_dataset(StateANN.get_state_ann(self.state.state), np.array([[1/(1 + np.exp(-result_train))]]))
         if self.parent:
             self.parent.backpropagate(result, child=self, propagated_reward=propagated_reward, dataset=dataset)
         else:
@@ -224,15 +225,12 @@ class MonteCarloTreeSearchNode():
         possible_moves_np = np.array(possible_moves)
         if 100 in possible_moves_np[:,0]:
             return [100, 0, 0]
-        possible_rollout_states = self._get_possible_rollout_states(current_rollout_state, possible_moves)
-        state_estimation = self.state_estimate_model.predict(possible_rollout_states)
-        state_distribution = (np.array(state_estimation) / np.sum(state_estimation)).flatten()
+        possible_rollout_states = self._get_possible_states(current_rollout_state, possible_moves)
+        state_distribution = self._get_state_distribution(possible_rollout_states)
 
-        rng = np.random.default_rng()
-        return rng.choice(possible_moves_np, p=state_distribution, axis=0)
-        # return possible_moves_np[np.argmax(state_estimation)]
+        return self._get_action_from_distribution(possible_moves_np, state_distribution)
 
-    def _get_possible_rollout_states(self, current_rollout_state, possible_moves):
+    def _get_possible_states(self, current_rollout_state, possible_moves):
         possible_rollout_states = []
         for move in possible_moves:
             from_row, to_row, tile_idx = move[0], move[1], move[2]
@@ -240,7 +238,7 @@ class MonteCarloTreeSearchNode():
             if from_row < 100:
                 state_copy[from_row, tile_idx] = False
                 state_copy[to_row, tile_idx] = True
-            possible_rollout_states.extend(RolloutState.get_rollout_state(state_copy))
+            possible_rollout_states.extend(StateANN.get_state_ann(state_copy))
 
         return np.array(possible_rollout_states)
 
@@ -273,6 +271,26 @@ class MonteCarloTreeSearchNode():
             dataset.shrink(self.BUFFER_SIZE)
         
         return self.best_child(c_param=0.)
+
+    def _get_probable_untried_action(self):
+        state_distribution = self._get_state_distribution(self._untried_states_ann)
+        action = self._get_action_from_distribution(np.array(self._untried_actions), state_distribution)
+        action = action.tolist()
+        index_to_delete = self._untried_actions.index(action)
+        self._untried_actions.remove(action)
+        self._untried_states_ann = np.delete(self._untried_states_ann, index_to_delete, axis=0)
+
+        return action
+
+    def _get_state_distribution(self, possible_states):
+        state_estimation = self.state_estimate_model.predict(possible_states)
+        state_distribution = (np.array(state_estimation) / np.sum(state_estimation)).flatten()
+
+        return state_distribution
+
+    def _get_action_from_distribution(self, actions:np.ndarray, distribution):
+        rng = np.random.default_rng()
+        return rng.choice(actions, p=distribution, axis=0)
 
     @classmethod
     def create_models(cls):
