@@ -164,15 +164,6 @@ class MonteCarloTreeSearchNode():
 
     def expand(self):
 	
-        # action = self._get_probable_untried_action()
-        # next_state, reward, group_extended_reward = self.state.move(action)
-        # child_node = MonteCarloTreeSearchNode(
-        #     next_state, parent=self, parent_action=action)
-        # self._results[child_node] = reward
-        # self._groups_extended = max(self._groups_extended, group_extended_reward)
-
-        # self.children.append(child_node)
-        # return child_node
         for action in self._untried_actions:
             next_state, reward, group_extended_reward = self.state.move(action)
             child_node = MonteCarloTreeSearchNode(
@@ -180,6 +171,10 @@ class MonteCarloTreeSearchNode():
             self._results[child_node] = reward
             self._groups_extended = max(self._groups_extended, group_extended_reward)
             self.children.append(child_node)
+
+        action = self._get_probable_untried_action()
+        
+        return self.children[self._untried_actions.index(action)]
 
     def is_terminal_node(self):
         return self.state.is_game_over()
@@ -223,9 +218,11 @@ class MonteCarloTreeSearchNode():
     def is_fully_expanded(self):
         return len(self._untried_actions) == 0
 
-    def best_child(self, c_param=0.1, verbose=False):
-    
-        choices_weights = [(c.q() / c.n()) + c_param * np.sqrt((2 * np.log(self.n()) / c.n())) for c in self.children]
+    def best_child(self, c_param=0.1, ann_param=1.0, verbose=False):
+        children_estimation_ann = self.state_estimate_model.predict(self._untried_states_ann)
+
+        choices_weights = [(c.q() / c.n()) + c_param * np.sqrt((2 * np.log(self.n()) / c.n())) + ann_param * ann_estimation\
+             for c, ann_estimation in zip(self.children, children_estimation_ann)]
         if verbose:
             print(self._results_accepted)
         return self.children[np.argmax(choices_weights)]
@@ -279,7 +276,7 @@ class MonteCarloTreeSearchNode():
             dataset = v.backpropagate(reward, dataset=dataset)
             dataset.shrink(self.BUFFER_SIZE)
         
-        return self.best_child(c_param=0., verbose=True)
+        return self.best_child(c_param=0., ann_param=0., verbose=True)
 
     def _get_probable_untried_action(self):
         state_distribution = self._get_state_distribution(self._untried_states_ann)
