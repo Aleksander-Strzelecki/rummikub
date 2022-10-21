@@ -2,7 +2,7 @@
 *.zip
 .env
 __pycache__
-*.ipynb
+test.ipynb
 
 ## Core latex/pdflatex auxiliary files:
 *.aux
