@@ -164,15 +164,22 @@ class MonteCarloTreeSearchNode():
 
     def expand(self):
 	
-        action = self._get_probable_untried_action()
-        next_state, reward, group_extended_reward = self.state.move(action)
-        child_node = MonteCarloTreeSearchNode(
-            next_state, parent=self, parent_action=action)
-        self._results[child_node] = reward
-        self._groups_extended = max(self._groups_extended, group_extended_reward)
+        # action = self._get_probable_untried_action()
+        # next_state, reward, group_extended_reward = self.state.move(action)
+        # child_node = MonteCarloTreeSearchNode(
+        #     next_state, parent=self, parent_action=action)
+        # self._results[child_node] = reward
+        # self._groups_extended = max(self._groups_extended, group_extended_reward)
 
-        self.children.append(child_node)
-        return child_node
+        # self.children.append(child_node)
+        # return child_node
+        for action in self._untried_actions:
+            next_state, reward, group_extended_reward = self.state.move(action)
+            child_node = MonteCarloTreeSearchNode(
+                next_state, parent=self, parent_action=action)
+            self._results[child_node] = reward
+            self._groups_extended = max(self._groups_extended, group_extended_reward)
+            self.children.append(child_node)
 
     def is_terminal_node(self):
         return self.state.is_game_over()
@@ -249,7 +256,7 @@ class MonteCarloTreeSearchNode():
         current_node = self
         while not current_node.is_terminal_node():
             
-            if not current_node.is_fully_expanded():
+            if current_node._no_children():
                 return current_node.expand()
             else:
                 current_node = current_node.best_child()
@@ -278,9 +285,6 @@ class MonteCarloTreeSearchNode():
         state_distribution = self._get_state_distribution(self._untried_states_ann)
         action = self._get_action_from_distribution(np.array(self._untried_actions), state_distribution)
         action = action.tolist()
-        index_to_delete = self._untried_actions.index(action)
-        self._untried_actions.remove(action)
-        self._untried_states_ann = np.delete(self._untried_states_ann, index_to_delete, axis=0)
 
         return action
 
@@ -293,6 +297,9 @@ class MonteCarloTreeSearchNode():
     def _get_action_from_distribution(self, actions:np.ndarray, distribution):
         rng = np.random.default_rng()
         return rng.choice(actions, p=distribution, axis=0)
+
+    def _no_children(self):
+        return self.children == []
 
     @classmethod
     def create_models(cls):
