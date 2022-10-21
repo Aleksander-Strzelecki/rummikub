@@ -169,7 +169,7 @@ class MonteCarloTreeSearchNode():
         child_node = MonteCarloTreeSearchNode(
             next_state, parent=self, parent_action=action)
         self._results[child_node] = reward
-        self._groups_extended = group_extended_reward
+        self._groups_extended = max(self._groups_extended, group_extended_reward)
 
         self.children.append(child_node)
         return child_node
@@ -204,7 +204,7 @@ class MonteCarloTreeSearchNode():
         elif child is None:
             self._results_accepted[self] = result
         result_train = self._get_result_train()
-        dataset.extend_dataset(StateANN.get_state_ann(self.state.state), np.array([[1/(1 + np.exp(-result_train))]]))
+        dataset.extend_dataset(StateANN.get_state_ann(self.state.state), np.array([[1/(1 + np.exp(2-result_train))]]))
         if self.parent:
             self.parent.backpropagate(result, child=self, propagated_reward=propagated_reward, dataset=dataset)
         else:
@@ -260,7 +260,7 @@ class MonteCarloTreeSearchNode():
             return self._groups_extended
 
     def best_action(self):
-        simulation_no = 150
+        simulation_no = 20
         dataset = DataSet()
         
         for i in range(simulation_no):

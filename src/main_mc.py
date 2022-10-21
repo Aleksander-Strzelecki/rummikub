@@ -17,6 +17,7 @@ if __name__ == '__main__':
             actions_sequence.append(child.parent_action)
             child = child.best_action()
         actions_sequence.append(child.parent_action)
+        print("Best Actions: ", actions_sequence)
         actions_sequence = np.array(actions_sequence)
         actions_sequence[np.where(actions_sequence[:,0] < 100)[0], 0:2] -= 1
         actions_sequence = actions_sequence.tolist()
