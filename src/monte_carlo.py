@@ -246,7 +246,7 @@ class MonteCarloTreeSearchNode():
     def rollout_policy(self, possible_moves, current_rollout_state):
         possible_moves_np = np.array(possible_moves)
         if 100 in possible_moves_np[:,0]:
-            return [100, 0, 0]
+            return np.array([100, 0, 0])
         possible_rollout_states = self._get_possible_states(current_rollout_state, possible_moves)
         state_distribution = self._get_state_distribution(possible_rollout_states)
 
