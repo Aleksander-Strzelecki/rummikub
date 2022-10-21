@@ -282,7 +282,7 @@ class MonteCarloTreeSearchNode():
             return self._groups_extended
 
     def best_actions(self):
-        simulation_no = 200
+        simulation_no = 40
         dataset = DataSet()
         actions = []
         spare_actions = []
