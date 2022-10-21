@@ -216,9 +216,11 @@ class MonteCarloTreeSearchNode():
     def is_fully_expanded(self):
         return len(self._untried_actions) == 0
 
-    def best_child(self, c_param=0.1):
+    def best_child(self, c_param=0.1, verbose=False):
     
         choices_weights = [(c.q() / c.n()) + c_param * np.sqrt((2 * np.log(self.n()) / c.n())) for c in self.children]
+        if verbose:
+            print(self._results_accepted)
         return self.children[np.argmax(choices_weights)]
 
     def rollout_policy(self, possible_moves, current_rollout_state):
@@ -270,7 +272,7 @@ class MonteCarloTreeSearchNode():
             dataset = v.backpropagate(reward, dataset=dataset)
             dataset.shrink(self.BUFFER_SIZE)
         
-        return self.best_child(c_param=0.)
+        return self.best_child(c_param=0., verbose=True)
 
     def _get_probable_untried_action(self):
         state_distribution = self._get_state_distribution(self._untried_states_ann)
