@@ -11,12 +11,12 @@ if __name__ == '__main__':
     while True:
         game.render()
         root = monte_carlo.MonteCarloTreeSearchNode(state = mc_state)
-        actions_sequence = []
-        child = root.best_action()
-        while(child.children):
-            actions_sequence.append(child.parent_action)
-            child = child.best_action()
-        actions_sequence.append(child.parent_action)
+        # actions_sequence = []
+        actions_sequence = root.best_actions()
+        # while(child.children):
+        #     actions_sequence.append(child.parent_action)
+        #     child = child.best_action()
+        # actions_sequence.append(child.parent_action)
         print("Best Actions: ", actions_sequence)
         actions_sequence = np.array(actions_sequence)
         actions_sequence[np.where(actions_sequence[:,0] < 100)[0], 0:2] -= 1
