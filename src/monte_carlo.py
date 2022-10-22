@@ -48,8 +48,8 @@ class MonteCarloSearchTreeState():
                 moves.append([0, group_idx+1, tile_idx])
 
         ############### GROUP MANIPULATION ##################
-        # moves.extend(Solver.solve_manipulation(any_groups_no_empty_group, any_groups, \
-        #     any_groups_no_empty_group_idxs+1, any_groups_idx+1))
+        moves.extend(Solver.solve_manipulation(any_groups_no_empty_group, any_groups, \
+            any_groups_no_empty_group_idxs+1, any_groups_idx+1))
         
         ################## TABLE VALIDATION ####################
         if Solver.check_board(self.state[1:,:]) and self.move_done:
