@@ -312,7 +312,7 @@ class MonteCarloTreeSearchNode():
             return spare_actions[-1]
         else:
             print('Action not found return default')
-            return [101,0,0]
+            return [[101,0,0]]
 
     def _get_probable_untried_action(self):
         state_distribution = self._get_state_distribution(self._untried_states_ann)
