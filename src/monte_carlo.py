@@ -136,7 +136,7 @@ class MonteCarloTreeSearchNode():
     player_tiles_less = 0
     state_estimate_model = None
     groups_estimate_model = None
-    BUFFER_SIZE = 1000
+    BUFFER_SIZE = 500
 
     def __init__(self, state: MonteCarloSearchTreeState, parent=None, parent_action=None):
         self.state = state
@@ -284,7 +284,7 @@ class MonteCarloTreeSearchNode():
             return self._groups_extended
 
     def best_actions(self, buffer:DataSet):
-        simulation_no = 40
+        simulation_no = 10
         actions = []
         spare_actions = []
 
