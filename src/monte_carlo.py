@@ -211,8 +211,8 @@ class MonteCarloTreeSearchNode():
         return current_rollout_state.game_result(), actions_to_return
 
     def backpropagate(self, result, child=None, propagated_reward=0, dataset:DataSet=None):
-        if dataset is None:
-            dataset = DataSet()
+        # if dataset is None:
+        #     dataset = DataSet()
 
         self._number_of_visits += 1.
         if child and result > 0:
@@ -300,7 +300,7 @@ class MonteCarloTreeSearchNode():
         actions.append(child.parent_action)
         while child.children:
             child = self.best_child(c_param=0., ann_param=0., verbose=True)
-            print('Parent action:' + child.parent_action)
+            print('Parent action:' + str(child.parent_action))
             actions.append(child.parent_action)
 
         if actions[-1] == [100,0,0]:
