@@ -234,7 +234,7 @@ class MonteCarloTreeSearchNode():
     def is_fully_expanded(self):
         return len(self._untried_actions) == 0
 
-    def best_child(self, c_param=0.5, ann_param=1.0, verbose=False):
+    def best_child(self, c_param=0.3, ann_param=1.0, verbose=False):
         children_estimation_ann = self.state_estimate_model.predict(self._untried_states_ann)
 
         choices_weights = [c.q() + c_param * ((np.log(self.n()) / (c.n() + 1))) + ann_param * ann_estimation\
