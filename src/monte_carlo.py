@@ -234,10 +234,10 @@ class MonteCarloTreeSearchNode():
     def is_fully_expanded(self):
         return len(self._untried_actions) == 0
 
-    def best_child(self, c_param=0.1, ann_param=1.0, verbose=False):
+    def best_child(self, c_param=0.5, ann_param=1.0, verbose=False):
         children_estimation_ann = self.state_estimate_model.predict(self._untried_states_ann)
 
-        choices_weights = [c.q() + c_param * np.sqrt((2 * np.log(self.n()) / (c.n() + 1))) + ann_param * ann_estimation\
+        choices_weights = [c.q() + c_param * ((np.log(self.n()) / (c.n() + 1))) + ann_param * ann_estimation\
              for c, ann_estimation in zip(self.children, children_estimation_ann)]
         if verbose:
             print(self._results_accepted)
@@ -303,10 +303,13 @@ class MonteCarloTreeSearchNode():
             actions.append(child.parent_action)
 
         if actions[-1] == [100,0,0]:
+            print("Action from monte carlo search")
             return actions
         elif spare_actions:
+            print('Action from rollout')
             return spare_actions[-1]
         else:
+            print('Action not found return default')
             return [101,0,0]
 
     def _get_probable_untried_action(self):
