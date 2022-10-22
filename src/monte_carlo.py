@@ -300,6 +300,7 @@ class MonteCarloTreeSearchNode():
         actions.append(child.parent_action)
         while child.children:
             child = self.best_child(c_param=0., ann_param=0., verbose=True)
+            print('Parent action:' + child.parent_action)
             actions.append(child.parent_action)
 
         if actions[-1] == [100,0,0]:
