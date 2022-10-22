@@ -1,3 +1,4 @@
+from tabnanny import verbose
 import numpy as np
 from collections import defaultdict
 from solver import Solver
@@ -235,7 +236,7 @@ class MonteCarloTreeSearchNode():
         return len(self._untried_actions) == 0
 
     def best_child(self, c_param=0.3, ann_param=1.0, verbose=False):
-        children_estimation_ann = self.state_estimate_model.predict(self._untried_states_ann)
+        children_estimation_ann = self.state_estimate_model.predict(self._untried_states_ann, verbose=0)
 
         choices_weights = [c.q() + c_param * ((np.log(self.n()) / (c.n() + 1))) + ann_param * ann_estimation\
              for c, ann_estimation in zip(self.children, children_estimation_ann)]
@@ -321,7 +322,7 @@ class MonteCarloTreeSearchNode():
         return action
 
     def _get_state_distribution(self, possible_states):
-        state_estimation = self.state_estimate_model.predict(possible_states)
+        state_estimation = self.state_estimate_model.predict(possible_states, verbose=0)
         state_distribution = (np.array(state_estimation) / np.sum(state_estimation)).flatten()
 
         return state_distribution
