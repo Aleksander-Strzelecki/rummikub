@@ -293,7 +293,7 @@ class MonteCarloTreeSearchNode():
             v = self._tree_policy()
             reward, rollout_actions = v.rollout()
             if rollout_actions:
-                spare_actions.extend(rollout_actions)
+                spare_actions.append(rollout_actions)
             dataset = v.backpropagate(reward, dataset=dataset)
             dataset.shrink(self.BUFFER_SIZE)
         
