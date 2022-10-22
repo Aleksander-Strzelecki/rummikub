@@ -237,7 +237,7 @@ class MonteCarloTreeSearchNode():
     def best_child(self, c_param=0.1, ann_param=1.0, verbose=False):
         children_estimation_ann = self.state_estimate_model.predict(self._untried_states_ann)
 
-        choices_weights = [c.q() + c_param * np.sqrt((2 * np.log(self.n()) / c.n())) + ann_param * ann_estimation\
+        choices_weights = [c.q() + c_param * np.sqrt((2 * np.log(self.n()) / (c.n() + 1))) + ann_param * ann_estimation\
              for c, ann_estimation in zip(self.children, children_estimation_ann)]
         if verbose:
             print(self._results_accepted)
