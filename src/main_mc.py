@@ -2,21 +2,18 @@ from rummikub import Rummikub
 import monte_carlo
 import numpy as np
 import time
+from dataset import DataSet
 
 if __name__ == '__main__':
     game = Rummikub(2)
     state = game.reset()
+    buffer = DataSet()
     mc_state = monte_carlo.MonteCarloSearchTreeState(state)
     monte_carlo.MonteCarloTreeSearchNode.create_models()
     while True:
         game.render()
         root = monte_carlo.MonteCarloTreeSearchNode(state = mc_state)
-        # actions_sequence = []
-        actions_sequence = root.best_actions()
-        # while(child.children):
-        #     actions_sequence.append(child.parent_action)
-        #     child = child.best_action()
-        # actions_sequence.append(child.parent_action)
+        actions_sequence, buffer = root.best_actions(buffer=buffer)
         print("Best Actions: ", actions_sequence)
         actions_sequence = np.array(actions_sequence)
         actions_sequence[np.where(actions_sequence[:,0] < 100)[0], 0:2] -= 1

@@ -282,9 +282,8 @@ class MonteCarloTreeSearchNode():
         else:
             return self._groups_extended
 
-    def best_actions(self):
+    def best_actions(self, buffer:DataSet):
         simulation_no = 40
-        dataset = DataSet()
         actions = []
         spare_actions = []
 
@@ -294,8 +293,8 @@ class MonteCarloTreeSearchNode():
             reward, rollout_actions = v.rollout()
             if rollout_actions:
                 spare_actions.append(rollout_actions)
-            dataset = v.backpropagate(reward, dataset=dataset)
-            dataset.shrink(self.BUFFER_SIZE)
+            buffer = v.backpropagate(reward, dataset=buffer)
+            buffer.shrink(self.BUFFER_SIZE)
         
         child = self.best_child(c_param=0., ann_param=0., verbose=True)
         actions.append(child.parent_action)
@@ -306,13 +305,13 @@ class MonteCarloTreeSearchNode():
 
         if actions[-1] == [100,0,0]:
             print("Action from monte carlo search")
-            return actions
+            return actions, buffer
         elif spare_actions:
             print('Action from rollout')
-            return spare_actions[-1]
+            return spare_actions[-1], buffer
         else:
             print('Action not found return default')
-            return [[101,0,0]]
+            return [[101,0,0]], buffer
 
     def _get_probable_untried_action(self):
         state_distribution = self._get_state_distribution(self._untried_states_ann)
