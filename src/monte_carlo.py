@@ -136,7 +136,7 @@ class MonteCarloTreeSearchNode():
     player_tiles_less = 0
     state_estimate_model = None
     groups_estimate_model = None
-    BUFFER_SIZE = 100
+    BUFFER_SIZE = 5000
 
     def __init__(self, state: MonteCarloSearchTreeState, parent=None, parent_action=None):
         self.state = state
