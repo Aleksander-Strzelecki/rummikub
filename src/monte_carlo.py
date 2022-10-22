@@ -241,6 +241,7 @@ class MonteCarloTreeSearchNode():
              for c, ann_estimation in zip(self.children, children_estimation_ann)]
         if verbose:
             print(self._results_accepted)
+            print(self.children)
         return self.children[np.argmax(choices_weights)]
 
     def rollout_policy(self, possible_moves, current_rollout_state):
