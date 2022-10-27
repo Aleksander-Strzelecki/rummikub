@@ -228,8 +228,8 @@ class MonteCarloTreeSearchNode():
         else:
             x_train, y_train = dataset.get_data()
             x_train_positive, y_train_positive = positive_dataset.get_data()
-            self.state_estimate_model.fit(np.concatenate(x_train, x_train_positive, axis=0),\
-                 np.concatenate(y_train, y_train_positive, axis=0))
+            self.state_estimate_model.fit(np.concatenate((x_train, x_train_positive), axis=0),\
+                 np.concatenate((y_train, y_train_positive), axis=0))
 
         return dataset, positive_dataset
 
