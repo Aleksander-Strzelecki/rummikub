@@ -343,7 +343,7 @@ class MonteCarloTreeSearchNode():
             dataset.extend_dataset(StateANN.get_state_ann(self.state.state), reward_function_return)
 
     def _reward_function(self, reward):
-        return np.array([[1/(1 + np.exp(2-reward))]])
+        return np.array([[1/(1 + np.exp(5-3*reward))]])
 
     @classmethod
     def create_models(cls):
