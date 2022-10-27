@@ -25,6 +25,7 @@ class Solver:
             return player_tiles_idx
         no_joker_tile_column = no_joker_tile_columns[0]
 
+        rummikub_series_condition = self._get_rummikub_series_condition()
         if np.all((group_tiles[0,:] == group_tiles[0,no_joker_tile_column]) | (group_tiles[0,:] == 0)) and group_tiles.shape[1] < 13:
             condition_jokers_outer_bound = (((player_tiles[0,:] == group_tiles[0,no_joker_tile_column]) & ((player_tiles[1,:] == np.amin(group_tiles[1,no_joker_tile_columns]-1)) | (player_tiles[1,:] == np.amax(group_tiles[1,no_joker_tile_columns]+1))))\
                         | (player_tiles[0,:] == 0))
@@ -149,3 +150,25 @@ class Solver:
             jokers_in = 0
 
         return jokers_count, jokers_in
+
+    def _get_rummikub_series_condition(self, destination_group_tiles_with_idxs, source_gropup_tiles_with_idxs, no_joker_tile_columns):
+        condition = None
+
+        if np.all((destination_group_tiles_with_idxs[0,:] == \
+            destination_group_tiles_with_idxs[0,no_joker_tile_columns[0]]) \
+            (destination_group_tiles_with_idxs[0,:] == 0)) and destination_group_tiles_with_idxs.shape[1] < 13:
+            
+            condition_jokers_outer_bound = (((source_gropup_tiles_with_idxs[0,:] == destination_group_tiles_with_idxs[0,no_joker_tile_column]) \
+                & ((source_gropup_tiles_with_idxs[1,:] == np.amin(destination_group_tiles_with_idxs[1,no_joker_tile_columns]-1)) \
+                | (source_gropup_tiles_with_idxs[1,:] == np.amax(destination_group_tiles_with_idxs[1,no_joker_tile_columns]+1))))\
+                (source_gropup_tiles_with_idxs[0,:] == 0))
+            condition = condition_jokers_outer_bound
+            jokers_count, jokers_in = self._count_jokers(destination_group_tiles_with_idxs)
+
+            if (jokers_count > 0) and (jokers_count != jokers_in):
+                condition_jokers_inner_bound = \
+                    self._get_condition_for_jokers_in(jokers_count - jokers_in, \
+                        destination_group_tiles_with_idxs, no_joker_tile_columns, source_gropup_tiles_with_idxs)
+                condition = (condition | condition_jokers_inner_bound)
+            
+        return condition
