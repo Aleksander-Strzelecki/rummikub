@@ -41,14 +41,15 @@ class MonteCarloSearchTreeState():
         self.any_groups = any_groups
 
         moves = []
+        solver = Solver()
         ################ GROUP EXTENDING ####################
         for group, group_idx in zip(any_groups, any_groups_idx):
-            tiles_idxs = Solver.solve_no_duplicates(player, group)
+            tiles_idxs = solver.solve_no_duplicates(player, group)
             for tile_idx in tiles_idxs:
                 moves.append([0, group_idx+1, tile_idx])
 
         ############### GROUP MANIPULATION ##################
-        moves.extend(Solver.solve_manipulation(any_groups_no_empty_group, any_groups, \
+        moves.extend(solver.solve_manipulation(any_groups_no_empty_group, any_groups, \
             any_groups_no_empty_group_idxs+1, any_groups_idx+1))
         
         ################## TABLE VALIDATION ####################

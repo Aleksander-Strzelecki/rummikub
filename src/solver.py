@@ -6,8 +6,7 @@ class Solver:
     def __init__(self) -> None:
         pass
 
-    @classmethod
-    def solve_pair(cls, player, group):
+    def solve_pair(self, player, group):
         player_tiles_idx = np.nonzero(player)[0]
         group_tiles_idx = np.nonzero(group)[0]
 
@@ -30,11 +29,11 @@ class Solver:
             condition_jokers_outer_bound = (((player_tiles[0,:] == group_tiles[0,no_joker_tile_column]) & ((player_tiles[1,:] == np.amin(group_tiles[1,no_joker_tile_columns]-1)) | (player_tiles[1,:] == np.amax(group_tiles[1,no_joker_tile_columns]+1))))\
                         | (player_tiles[0,:] == 0))
             condition = condition_jokers_outer_bound
-            jokers_count, jokers_in = cls._count_jokers(cls, group_tiles)
+            jokers_count, jokers_in = self._count_jokers(group_tiles)
 
             if (jokers_count > 0) and (jokers_count != jokers_in):
                 condition_jokers_inner_bound = \
-                    cls._get_condition_for_jokers_in(cls, jokers_count - jokers_in, \
+                    self._get_condition_for_jokers_in(jokers_count - jokers_in, \
                         group_tiles, no_joker_tile_columns, player_tiles)
                 condition = (condition | condition_jokers_inner_bound)
             result = np.hstack([result, player_tiles[2,condition]])
@@ -45,15 +44,14 @@ class Solver:
 
         return np.unique(result)
 
-    @classmethod
-    def solve_manipulation(cls, groups_from, groups_to, groups_from_idxs, groups_to_idxs):
+    def solve_manipulation(self, groups_from, groups_to, groups_from_idxs, groups_to_idxs):
         moves = []
         groups_tiles_with_idxs = np.vstack((Rummikub.tiles, np.arange(Rummikub.tiles_number)))
 
         for actual_idx, (group_1, group_1_idx) in enumerate(zip(groups_from, groups_from_idxs)):
             group_1_tiles_with_idxs = groups_tiles_with_idxs[:,group_1]
 
-            group_1_avaliable_tiles = cls._get_group_avaliable_tiles_manipulation(cls, group_1_tiles_with_idxs)
+            group_1_avaliable_tiles = self._get_group_avaliable_tiles_manipulation(group_1_tiles_with_idxs)
 
             groups_2_slice = np.delete(groups_to, actual_idx, axis=0)
             groups_2_idxs = np.delete(groups_to_idxs, actual_idx, axis=0)
@@ -77,11 +75,11 @@ class Solver:
                             (group_1_avaliable_tiles[1,:] == np.amax(group_2_tiles_with_idxs[1,no_joker_tile_columns]+1))))\
                         | (group_1_avaliable_tiles[0,:] == 0))
                     condition = condition_jokers_outer_bound
-                    jokers_count_2, jokers_in_2 = cls._count_jokers(cls, group_2_tiles_with_idxs)
+                    jokers_count_2, jokers_in_2 = self._count_jokers(group_2_tiles_with_idxs)
 
                     if (jokers_count_2 > 0) and (jokers_count_2 != jokers_in_2):
                         condition_jokers_inner_bound = \
-                            cls._get_condition_for_jokers_in(cls, jokers_count_2 - jokers_in_2, group_2_tiles_with_idxs, \
+                            self._get_condition_for_jokers_in(jokers_count_2 - jokers_in_2, group_2_tiles_with_idxs, \
                             no_joker_tile_columns, group_1_avaliable_tiles)
                         condition = (condition | condition_jokers_inner_bound)
 
@@ -97,9 +95,8 @@ class Solver:
         
         return moves
 
-    @classmethod
-    def solve_no_duplicates(cls, player, group):
-        tiles_idxs = cls.solve_pair(player, group)
+    def solve_no_duplicates(self, player, group):
+        tiles_idxs = self.solve_pair(player, group)
         tiles_idxs_bool = np.zeros((Rummikub.tiles_number), dtype=bool)
         tiles_idxs_bool[tiles_idxs] = True
         tiles_idxs_bool[:Rummikub.reduced_tiles_number-2] = tiles_idxs_bool[:Rummikub.reduced_tiles_number-2] \
