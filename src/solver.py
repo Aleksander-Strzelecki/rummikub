@@ -27,12 +27,10 @@ class Solver:
         no_joker_tile_column = no_joker_tile_columns[0]
 
         if np.all((group_tiles[0,:] == group_tiles[0,no_joker_tile_column]) | (group_tiles[0,:] == 0)) and group_tiles.shape[1] < 13:
-            group_numbers = group_tiles[1,:]
             condition_jokers_outer_bound = (((player_tiles[0,:] == group_tiles[0,no_joker_tile_column]) & ((player_tiles[1,:] == np.amin(group_tiles[1,no_joker_tile_columns]-1)) | (player_tiles[1,:] == np.amax(group_tiles[1,no_joker_tile_columns]+1))))\
                         | (player_tiles[0,:] == 0))
             condition = condition_jokers_outer_bound
-            jokers_count = len(group_numbers[group_numbers == 0])
-            jokers_in = cls._inner_jokers(cls, group_numbers)
+            jokers_count, jokers_in = cls._count_jokers(cls, group_tiles)
 
             if (jokers_count > 0) and (jokers_count != jokers_in):
                 condition_jokers_inner_bound = \
@@ -55,12 +53,7 @@ class Solver:
         for actual_idx, (group_1, group_1_idx) in enumerate(zip(groups_from, groups_from_idxs)):
             group_1_tiles_with_idxs = groups_tiles_with_idxs[:,group_1]
             group_1_tiles_numbers = group_1_tiles_with_idxs[1,:]
-            jokers_count_1 = len(group_1_tiles_numbers[group_1_tiles_numbers == 0])
-
-            if jokers_count_1 > 0:
-                jokers_in_1 = cls._inner_jokers(cls, group_1_tiles_numbers)
-            else:
-                jokers_in_1 = 0
+            jokers_count_1, jokers_in_1 = cls._count_jokers(cls, group_1_tiles_with_idxs)
 
             if jokers_in_1 != jokers_count_1:
                 group_1_avaliable_tiles = group_1_tiles_with_idxs[:,(group_1_tiles_numbers == np.amax(group_1_tiles_numbers)) \
@@ -149,3 +142,17 @@ class Solver:
             & ((np.in1d(source_group_tiles_with_idxs[1,:], nth_positive_smallest_value_with_joker)) | (np.in1d(source_group_tiles_with_idxs[1,:], nth_valid_largest_value_with_joker))))
 
         return condition_jokers_inner_bound
+
+    def _get_group_avaliable_tiles_manipulation(self,):
+        pass
+
+    def _count_jokers(self, group_tiles_with_idxs):
+        group_tiles_numbers = group_tiles_with_idxs[1,:]
+        jokers_count = len(group_tiles_numbers[group_tiles_numbers == 0])
+
+        if jokers_count > 0:
+            jokers_in = self._inner_jokers(group_tiles_numbers)
+        else:
+            jokers_in = 0
+
+        return jokers_count, jokers_in
