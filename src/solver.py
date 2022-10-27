@@ -10,6 +10,7 @@ class Solver:
     def solve_pair(cls, player, group):
         player_tiles_idx = np.nonzero(player)[0]
         group_tiles_idx = np.nonzero(group)[0]
+
         if group_tiles_idx.size == 0:
             return player_tiles_idx
         # 0 row colors
@@ -20,6 +21,7 @@ class Solver:
         result = np.array([], dtype=int)
 
         no_joker_tile_columns = np.where(group_tiles[0,:] > 0)[0]
+        
         if no_joker_tile_columns.size == 0:
             return player_tiles_idx
         no_joker_tile_column = no_joker_tile_columns[0]
@@ -31,6 +33,7 @@ class Solver:
             condition = condition_jokers_outer_bound
             jokers_count = len(group_numbers[group_numbers == 0])
             jokers_in = cls._inner_jokers(cls, group_numbers)
+
             if (jokers_count > 0) and (jokers_count != jokers_in):
                 jokers_out = jokers_count - jokers_in
                 lower_bound_value_with_jokers = group_tiles[1,no_joker_tile_columns]-1*jokers_out-1
@@ -42,9 +45,11 @@ class Solver:
                 condition_jokers_inner_bound = ((player_tiles[0,:] == group_tiles[0,no_joker_tile_column]) & ((np.in1d(player_tiles[1,:], nth_positive_smallest_value_with_joker)) | (np.in1d(player_tiles[1,:], nth_valid_largest_value_with_joker))))
                 condition = (condition | condition_jokers_inner_bound)
             result = np.hstack([result, player_tiles[2,condition]])
+
         if np.all((group_tiles[1,:] == group_tiles[1,no_joker_tile_column]) | (group_tiles[1,:] == 0)) and group_tiles.shape[1] < 4:
             condition = (((player_tiles[1,:] == group_tiles[1,no_joker_tile_column]) & (np.in1d(player_tiles[0,:], group_tiles[0,:], invert=True))) | (player_tiles[0,:]==0))
             result = np.hstack([result, player_tiles[2,condition]])
+            
         return np.unique(result)
 
     @classmethod
@@ -56,10 +61,12 @@ class Solver:
             group_1_tiles_with_idxs = groups_tiles_with_idxs[:,group_1]
             group_1_tiles_numbers = group_1_tiles_with_idxs[1,:]
             jokers_count_1 = len(group_1_tiles_numbers[group_1_tiles_numbers == 0])
+
             if jokers_count_1 > 0:
                 jokers_in_1 = cls._inner_jokers(cls, group_1_tiles_numbers)
             else:
                 jokers_in_1 = 0
+
             if jokers_in_1 != jokers_count_1:
                 group_1_avaliable_tiles = group_1_tiles_with_idxs[:,(group_1_tiles_numbers == np.amax(group_1_tiles_numbers)) \
                     | (group_1_tiles_numbers == np.amin(group_1_tiles_numbers)) | (group_1_tiles_numbers == 0)]
@@ -69,16 +76,20 @@ class Solver:
 
             groups_2_slice = np.delete(groups_to, actual_idx, axis=0)
             groups_2_idxs = np.delete(groups_to_idxs, actual_idx, axis=0)
+
             for group_2, group_2_idx in zip(groups_2_slice, groups_2_idxs):
                 group_2_tiles_with_idxs = groups_tiles_with_idxs[:,group_2]
                 group_2_tiles_numbers = group_2_tiles_with_idxs[1,:]
 
                 no_joker_tile_columns = np.where(group_2_tiles_with_idxs[0,:] > 0)[0]
+
                 if no_joker_tile_columns.size == 0:
                     for tile_idx in group_1_avaliable_tiles[2,:]:
                         moves.append([group_1_idx, group_2_idx, tile_idx])
                     continue
+
                 no_joker_tile_column = no_joker_tile_columns[0]
+
                 if np.all((group_2_tiles_with_idxs[0,:] == group_2_tiles_with_idxs[0,no_joker_tile_column]) \
                     | (group_2_tiles_with_idxs[0,:] == 0)) and group_2_tiles_with_idxs.shape[1] < 13:
                     condition_jokers_outer_bound = (((group_1_avaliable_tiles[0,:] == group_2_tiles_with_idxs[0,no_joker_tile_column]) \
@@ -87,10 +98,12 @@ class Solver:
                         | (group_1_avaliable_tiles[0,:] == 0))
                     condition = condition_jokers_outer_bound
                     jokers_count_2 = len(group_2_tiles_numbers[group_2_tiles_numbers == 0])
+
                     if jokers_count_2 > 0:
                         jokers_in_2 = cls._inner_jokers(cls, group_2_tiles_numbers)
                     else:
                         jokers_in_2 = jokers_count_2
+
                     if (jokers_count_2 > 0) and (jokers_count_2 != jokers_in_2):
                         jokers_out_2 = jokers_count_2 - jokers_in_2
                         lower_bound_value_with_jokers_2 = group_2_tiles_with_idxs[1,no_joker_tile_columns]-1*jokers_out_2-1
@@ -109,6 +122,7 @@ class Solver:
                 if np.all((group_2_tiles_with_idxs[1,:] == group_2_tiles_with_idxs[1,no_joker_tile_column]) | (group_2_tiles_with_idxs[1,:] == 0)) and group_2_tiles_with_idxs.shape[1] < 4:
                     condition = (((group_1_avaliable_tiles[1,:] == group_2_tiles_with_idxs[1,no_joker_tile_column]) & (np.in1d(group_1_avaliable_tiles[0,:], group_2_tiles_with_idxs[0,:], invert=True))) \
                         | (group_1_avaliable_tiles[0,:]==0))
+
                     for tile_idx in group_1_avaliable_tiles[2,condition]:
                         moves.append([group_1_idx, group_2_idx, tile_idx])
         
