@@ -19,3 +19,6 @@ class DataSet():
         y_np = y_np[-size:]
         self.x = x_np.tolist()
         self.y = y_np.tolist()
+
+    def length(self):
+        return len(self.x)

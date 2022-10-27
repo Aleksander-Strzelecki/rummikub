@@ -8,12 +8,13 @@ if __name__ == '__main__':
     game = Rummikub(2)
     state = game.reset()
     buffer = DataSet()
+    positive_buffer = DataSet()
     mc_state = monte_carlo.MonteCarloSearchTreeState(state)
     monte_carlo.MonteCarloTreeSearchNode.create_models()
     while True:
         game.render()
         root = monte_carlo.MonteCarloTreeSearchNode(state = mc_state)
-        actions_sequence, buffer = root.best_actions(buffer=buffer)
+        actions_sequence, buffer = root.best_actions(buffer=buffer, positive_buffer=positive_buffer)
         print("Best Actions: ", actions_sequence)
         actions_sequence = np.array(actions_sequence)
         actions_sequence[np.where(actions_sequence[:,0] < 100)[0], 0:2] -= 1

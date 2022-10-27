@@ -137,6 +137,7 @@ class MonteCarloTreeSearchNode():
     state_estimate_model = None
     groups_estimate_model = None
     BUFFER_SIZE = 500
+    POSITIVE_BUFFER_SIZE = 500
 
     def __init__(self, state: MonteCarloSearchTreeState, parent=None, parent_action=None):
         self.state = state
@@ -211,10 +212,7 @@ class MonteCarloTreeSearchNode():
 
         return current_rollout_state.game_result(), actions_to_return
 
-    def backpropagate(self, result, child=None, propagated_reward=0, dataset:DataSet=None):
-        # if dataset is None:
-        #     dataset = DataSet()
-
+    def backpropagate(self, result, child=None, propagated_reward=0, dataset:DataSet=None, positive_dataset:DataSet=None):
         self._number_of_visits += 1.
         if child and result > 0:
             self._results_accepted[child] = self._results[child] + propagated_reward
@@ -223,14 +221,16 @@ class MonteCarloTreeSearchNode():
         elif child is None:
             self._results_accepted[self] = result
         result_train = self._get_result_train()
-        dataset.extend_dataset(StateANN.get_state_ann(self.state.state), np.array([[1/(1 + np.exp(2-result_train))]]))
+        self._extend_datasets(dataset, positive_dataset, result_train)
         if self.parent:
             self.parent.backpropagate(result, child=self, propagated_reward=propagated_reward, dataset=dataset)
         else:
             x_train, y_train = dataset.get_data()
-            self.state_estimate_model.fit(x_train, y_train)
+            x_train_positive, y_train_positive = positive_dataset.get_data()
+            self.state_estimate_model.fit(np.concatenate(x_train, x_train_positive, axis=0),\
+                 np.concatenate(y_train, y_train_positive, axis=0))
 
-        return dataset
+        return dataset, positive_dataset
 
     def is_fully_expanded(self):
         return len(self._untried_actions) == 0
@@ -283,7 +283,7 @@ class MonteCarloTreeSearchNode():
         else:
             return self._groups_extended
 
-    def best_actions(self, buffer:DataSet):
+    def best_actions(self, buffer:DataSet, positive_buffer:DataSet):
         simulation_no = 10
         actions = []
         spare_actions = []
@@ -294,8 +294,9 @@ class MonteCarloTreeSearchNode():
             reward, rollout_actions = v.rollout()
             if rollout_actions:
                 spare_actions.append(rollout_actions)
-            buffer = v.backpropagate(reward, dataset=buffer)
+            buffer, positive_buffer = v.backpropagate(reward, dataset=buffer, positive_dataset=positive_buffer)
             buffer.shrink(self.BUFFER_SIZE)
+            positive_buffer.shrink(self.POSITIVE_BUFFER_SIZE)
         
         child = self.best_child(c_param=0., ann_param=0., verbose=True)
         actions.append(child.parent_action)
@@ -333,6 +334,16 @@ class MonteCarloTreeSearchNode():
 
     def _no_children(self):
         return self.children == []
+
+    def _extend_datasets(self, dataset:DataSet, positive_dataset:DataSet, train_reward):
+        reward_function_return = self._reward_function(train_reward)
+        if train_reward > 1:
+            positive_dataset.extend_dataset(StateANN.get_state_ann(self.state.state), reward_function_return)
+        elif dataset.length() < positive_dataset.length()*2:
+            dataset.extend_dataset(StateANN.get_state_ann(self.state.state), reward_function_return)
+
+    def _reward_function(self, reward):
+        return np.array([[1/(1 + np.exp(2-reward))]])
 
     @classmethod
     def create_models(cls):
