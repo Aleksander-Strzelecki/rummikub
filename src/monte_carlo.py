@@ -136,8 +136,8 @@ class MonteCarloTreeSearchNode():
     player_tiles_less = 0
     state_estimate_model = None
     groups_estimate_model = None
-    BUFFER_SIZE = 500
-    POSITIVE_BUFFER_SIZE = 500
+    BUFFER_SIZE = 10
+    POSITIVE_BUFFER_SIZE = 100
 
     def __init__(self, state: MonteCarloSearchTreeState, parent=None, parent_action=None):
         self.state = state
@@ -228,8 +228,10 @@ class MonteCarloTreeSearchNode():
         else:
             x_train, y_train = dataset.get_data()
             x_train_positive, y_train_positive = positive_dataset.get_data()
-            self.state_estimate_model.fit(np.concatenate((x_train, x_train_positive), axis=0),\
-                 np.concatenate((y_train, y_train_positive), axis=0))
+            x_concatenate = np.concatenate((x_train, x_train_positive), axis=0) if x_train_positive.size else x_train
+            y_concatenate = np.concatenate((y_train, y_train_positive), axis=0) if y_train_positive.size else y_train
+            self.state_estimate_model.fit(x_concatenate,\
+                 y_concatenate)
 
         return dataset, positive_dataset
 
@@ -340,8 +342,7 @@ class MonteCarloTreeSearchNode():
         reward_function_return = self._reward_function(train_reward)
         if train_reward > 1:
             positive_dataset.extend_dataset(StateANN.get_state_ann(self.state.state), reward_function_return)
-        elif dataset.length() < positive_dataset.length()*2:
-            dataset.extend_dataset(StateANN.get_state_ann(self.state.state), reward_function_return)
+        dataset.extend_dataset(StateANN.get_state_ann(self.state.state), reward_function_return)
 
     def _reward_function(self, reward):
         return np.array([[1/(1 + np.exp(5-3*reward))]])
