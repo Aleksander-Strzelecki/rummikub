@@ -223,7 +223,8 @@ class MonteCarloTreeSearchNode():
         result_train = self._get_result_train()
         self._extend_datasets(dataset, positive_dataset, result_train)
         if self.parent:
-            self.parent.backpropagate(result, child=self, propagated_reward=propagated_reward, dataset=dataset)
+            self.parent.backpropagate(result, child=self, propagated_reward=propagated_reward, \
+                dataset=dataset, positive_dataset=positive_dataset)
         else:
             x_train, y_train = dataset.get_data()
             x_train_positive, y_train_positive = positive_dataset.get_data()
