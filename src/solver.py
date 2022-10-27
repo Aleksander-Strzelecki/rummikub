@@ -35,21 +35,16 @@ class Solver:
             jokers_in = cls._inner_jokers(cls, group_numbers)
 
             if (jokers_count > 0) and (jokers_count != jokers_in):
-                jokers_out = jokers_count - jokers_in
-                lower_bound_value_with_jokers = group_tiles[1,no_joker_tile_columns]-1*jokers_out-1
-                nth_smallest_value_with_joker = np.sort(lower_bound_value_with_jokers)[:jokers_out]
-                nth_positive_smallest_value_with_joker = nth_smallest_value_with_joker[nth_smallest_value_with_joker > 0]
-                upper_bound_value_with_jokers = group_tiles[1,no_joker_tile_columns]+1*jokers_out+1
-                nth_largest_value_with_joker = np.sort(upper_bound_value_with_jokers)[-jokers_out:]
-                nth_valid_largest_value_with_joker = nth_largest_value_with_joker[nth_largest_value_with_joker < 14]
-                condition_jokers_inner_bound = ((player_tiles[0,:] == group_tiles[0,no_joker_tile_column]) & ((np.in1d(player_tiles[1,:], nth_positive_smallest_value_with_joker)) | (np.in1d(player_tiles[1,:], nth_valid_largest_value_with_joker))))
+                condition_jokers_inner_bound = \
+                    cls._get_condition_for_jokers(cls, jokers_count - jokers_in, \
+                        group_tiles, no_joker_tile_columns, player_tiles)
                 condition = (condition | condition_jokers_inner_bound)
             result = np.hstack([result, player_tiles[2,condition]])
 
         if np.all((group_tiles[1,:] == group_tiles[1,no_joker_tile_column]) | (group_tiles[1,:] == 0)) and group_tiles.shape[1] < 4:
             condition = (((player_tiles[1,:] == group_tiles[1,no_joker_tile_column]) & (np.in1d(player_tiles[0,:], group_tiles[0,:], invert=True))) | (player_tiles[0,:]==0))
             result = np.hstack([result, player_tiles[2,condition]])
-            
+
         return np.unique(result)
 
     @classmethod
@@ -105,15 +100,9 @@ class Solver:
                         jokers_in_2 = jokers_count_2
 
                     if (jokers_count_2 > 0) and (jokers_count_2 != jokers_in_2):
-                        jokers_out_2 = jokers_count_2 - jokers_in_2
-                        lower_bound_value_with_jokers_2 = group_2_tiles_with_idxs[1,no_joker_tile_columns]-1*jokers_out_2-1
-                        nth_smallest_value_with_joker_2 = np.sort(lower_bound_value_with_jokers_2)[:jokers_out_2]
-                        nth_positive_smallest_value_with_joker_2 = nth_smallest_value_with_joker_2[nth_smallest_value_with_joker_2 > 0]
-                        upper_bound_value_with_jokers_2 = group_2_tiles_with_idxs[1,no_joker_tile_columns]+1*jokers_out_2+1
-                        nth_largest_value_with_joker_2 = np.sort(upper_bound_value_with_jokers_2)[-jokers_out_2:]
-                        nth_valid_largest_value_with_joker_2 = nth_largest_value_with_joker_2[nth_largest_value_with_joker_2 < 14]
-                        condition_jokers_inner_bound = ((group_1_avaliable_tiles[0,:] == group_2_tiles_with_idxs[0,no_joker_tile_column]) \
-                            & ((np.in1d(group_1_avaliable_tiles[1,:], nth_positive_smallest_value_with_joker_2)) | (np.in1d(group_1_avaliable_tiles[1,:], nth_valid_largest_value_with_joker_2))))
+                        condition_jokers_inner_bound = \
+                            cls._get_condition_for_jokers(cls, jokers_count_2 - jokers_in_2, group_2_tiles_with_idxs, \
+                            no_joker_tile_columns, group_1_avaliable_tiles)
                         condition = (condition | condition_jokers_inner_bound)
 
                     for tile_idx in group_1_avaliable_tiles[2,condition]:
@@ -148,3 +137,15 @@ class Solver:
         array_no_joker = array[array != 0]
         diff_array = np.diff(np.sort(array_no_joker))
         return np.sum(diff_array // 2)
+
+    def _get_condition_for_jokers(self, jokers_out, group_tiles_with_idxs, no_joker_tile_columns, source_group_tiles_with_idxs):
+        lower_bound_value_with_jokers = group_tiles_with_idxs[1,no_joker_tile_columns]-1*jokers_out-1
+        nth_smallest_value_with_joker = np.sort(lower_bound_value_with_jokers)[:jokers_out]
+        nth_positive_smallest_value_with_joker = nth_smallest_value_with_joker[nth_smallest_value_with_joker > 0]
+        upper_bound_value_with_jokers = group_tiles_with_idxs[1,no_joker_tile_columns]+1*jokers_out+1
+        nth_largest_value_with_joker = np.sort(upper_bound_value_with_jokers)[-jokers_out:]
+        nth_valid_largest_value_with_joker = nth_largest_value_with_joker[nth_largest_value_with_joker < 14]
+        condition_jokers_inner_bound = ((source_group_tiles_with_idxs[0,:] == group_tiles_with_idxs[0,no_joker_tile_columns]) \
+            & ((np.in1d(source_group_tiles_with_idxs[1,:], nth_positive_smallest_value_with_joker)) | (np.in1d(source_group_tiles_with_idxs[1,:], nth_valid_largest_value_with_joker))))
+
+        return condition_jokers_inner_bound
