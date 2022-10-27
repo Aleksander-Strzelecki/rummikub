@@ -60,7 +60,6 @@ class Solver:
 
             for group_2, group_2_idx in zip(groups_2_slice, groups_2_idxs):
                 group_2_tiles_with_idxs = groups_tiles_with_idxs[:,group_2]
-                group_2_tiles_numbers = group_2_tiles_with_idxs[1,:]
 
                 no_joker_tile_columns = np.where(group_2_tiles_with_idxs[0,:] > 0)[0]
 
@@ -78,12 +77,7 @@ class Solver:
                             (group_1_avaliable_tiles[1,:] == np.amax(group_2_tiles_with_idxs[1,no_joker_tile_columns]+1))))\
                         | (group_1_avaliable_tiles[0,:] == 0))
                     condition = condition_jokers_outer_bound
-                    jokers_count_2 = len(group_2_tiles_numbers[group_2_tiles_numbers == 0])
-
-                    if jokers_count_2 > 0:
-                        jokers_in_2 = cls._inner_jokers(cls, group_2_tiles_numbers)
-                    else:
-                        jokers_in_2 = jokers_count_2
+                    jokers_count_2, jokers_in_2 = cls._count_jokers(cls, group_2_tiles_with_idxs)
 
                     if (jokers_count_2 > 0) and (jokers_count_2 != jokers_in_2):
                         condition_jokers_inner_bound = \
