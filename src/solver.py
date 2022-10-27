@@ -52,15 +52,8 @@ class Solver:
 
         for actual_idx, (group_1, group_1_idx) in enumerate(zip(groups_from, groups_from_idxs)):
             group_1_tiles_with_idxs = groups_tiles_with_idxs[:,group_1]
-            group_1_tiles_numbers = group_1_tiles_with_idxs[1,:]
-            jokers_count_1, jokers_in_1 = cls._count_jokers(cls, group_1_tiles_with_idxs)
 
-            if jokers_in_1 != jokers_count_1:
-                group_1_avaliable_tiles = group_1_tiles_with_idxs[:,(group_1_tiles_numbers == np.amax(group_1_tiles_numbers)) \
-                    | (group_1_tiles_numbers == np.amin(group_1_tiles_numbers)) | (group_1_tiles_numbers == 0)]
-            else:
-                group_1_avaliable_tiles = group_1_tiles_with_idxs[:,(group_1_tiles_numbers == np.amax(group_1_tiles_numbers)) \
-                    | (group_1_tiles_numbers == np.amin(group_1_tiles_numbers))]
+            group_1_avaliable_tiles = cls._get_group_avaliable_tiles_manipulation(cls, group_1_tiles_with_idxs)
 
             groups_2_slice = np.delete(groups_to, actual_idx, axis=0)
             groups_2_idxs = np.delete(groups_to_idxs, actual_idx, axis=0)
@@ -143,8 +136,17 @@ class Solver:
 
         return condition_jokers_inner_bound
 
-    def _get_group_avaliable_tiles_manipulation(self,):
-        pass
+    def _get_group_avaliable_tiles_manipulation(self, group_tiles_with_idxs):
+        group_tiles_numbers = group_tiles_with_idxs[1,:]
+        jokers_count, jokers_in = self._count_jokers(group_tiles_with_idxs)
+        if jokers_in != jokers_count:
+            group_avaliable_tiles = group_tiles_with_idxs[:,(group_tiles_numbers == np.amax(group_tiles_numbers)) \
+                | (group_tiles_numbers == np.amin(group_tiles_numbers)) | (group_tiles_numbers == 0)]
+        else:
+            group_avaliable_tiles = group_tiles_with_idxs[:,(group_tiles_numbers == np.amax(group_tiles_numbers)) \
+                | (group_tiles_numbers == np.amin(group_tiles_numbers))]
+
+        return group_avaliable_tiles
 
     def _count_jokers(self, group_tiles_with_idxs):
         group_tiles_numbers = group_tiles_with_idxs[1,:]
