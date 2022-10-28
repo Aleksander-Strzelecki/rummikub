@@ -23,25 +23,14 @@ class Solver:
         
         if no_joker_tile_columns.size == 0:
             return player_tiles_idx
-        no_joker_tile_column = no_joker_tile_columns[0]
 
-        rummikub_series_condition = self._get_rummikub_series_condition()
-        if np.all((group_tiles[0,:] == group_tiles[0,no_joker_tile_column]) | (group_tiles[0,:] == 0)) and group_tiles.shape[1] < 13:
-            condition_jokers_outer_bound = (((player_tiles[0,:] == group_tiles[0,no_joker_tile_column]) & ((player_tiles[1,:] == np.amin(group_tiles[1,no_joker_tile_columns]-1)) | (player_tiles[1,:] == np.amax(group_tiles[1,no_joker_tile_columns]+1))))\
-                        | (player_tiles[0,:] == 0))
-            condition = condition_jokers_outer_bound
-            jokers_count, jokers_in = self._count_jokers(group_tiles)
+        rummikub_series_condition = self._get_rummikub_series_condition(group_tiles, player_tiles, no_joker_tile_columns)
+        if rummikub_series_condition is not None:
+            result = np.hstack([result, player_tiles[2,rummikub_series_condition]])
 
-            if (jokers_count > 0) and (jokers_count != jokers_in):
-                condition_jokers_inner_bound = \
-                    self._get_condition_for_jokers_in(jokers_count - jokers_in, \
-                        group_tiles, no_joker_tile_columns, player_tiles)
-                condition = (condition | condition_jokers_inner_bound)
-            result = np.hstack([result, player_tiles[2,condition]])
-
-        if np.all((group_tiles[1,:] == group_tiles[1,no_joker_tile_column]) | (group_tiles[1,:] == 0)) and group_tiles.shape[1] < 4:
-            condition = (((player_tiles[1,:] == group_tiles[1,no_joker_tile_column]) & (np.in1d(player_tiles[0,:], group_tiles[0,:], invert=True))) | (player_tiles[0,:]==0))
-            result = np.hstack([result, player_tiles[2,condition]])
+        rummikub_groups_condition = self._get_rummikub_groups_condition(group_tiles, player_tiles, no_joker_tile_columns)
+        if rummikub_groups_condition is not None:
+            result = np.hstack([result, player_tiles[2,rummikub_groups_condition]])
 
         return np.unique(result)
 
@@ -67,31 +56,16 @@ class Solver:
                         moves.append([group_1_idx, group_2_idx, tile_idx])
                     continue
 
-                no_joker_tile_column = no_joker_tile_columns[0]
-
-                if np.all((group_2_tiles_with_idxs[0,:] == group_2_tiles_with_idxs[0,no_joker_tile_column]) \
-                    | (group_2_tiles_with_idxs[0,:] == 0)) and group_2_tiles_with_idxs.shape[1] < 13:
-                    condition_jokers_outer_bound = (((group_1_avaliable_tiles[0,:] == group_2_tiles_with_idxs[0,no_joker_tile_column]) \
-                        & ((group_1_avaliable_tiles[1,:] == np.amin(group_2_tiles_with_idxs[1,no_joker_tile_columns]-1)) | \
-                            (group_1_avaliable_tiles[1,:] == np.amax(group_2_tiles_with_idxs[1,no_joker_tile_columns]+1))))\
-                        | (group_1_avaliable_tiles[0,:] == 0))
-                    condition = condition_jokers_outer_bound
-                    jokers_count_2, jokers_in_2 = self._count_jokers(group_2_tiles_with_idxs)
-
-                    if (jokers_count_2 > 0) and (jokers_count_2 != jokers_in_2):
-                        condition_jokers_inner_bound = \
-                            self._get_condition_for_jokers_in(jokers_count_2 - jokers_in_2, group_2_tiles_with_idxs, \
-                            no_joker_tile_columns, group_1_avaliable_tiles)
-                        condition = (condition | condition_jokers_inner_bound)
-
-                    for tile_idx in group_1_avaliable_tiles[2,condition]:
+                rummikub_series_condition = self._get_rummikub_series_condition(group_2_tiles_with_idxs, \
+                    group_1_avaliable_tiles, no_joker_tile_columns)
+                if rummikub_series_condition is not None:
+                    for tile_idx in group_1_avaliable_tiles[2,rummikub_series_condition]:
                         moves.append([group_1_idx, group_2_idx, tile_idx])
 
-                if np.all((group_2_tiles_with_idxs[1,:] == group_2_tiles_with_idxs[1,no_joker_tile_column]) | (group_2_tiles_with_idxs[1,:] == 0)) and group_2_tiles_with_idxs.shape[1] < 4:
-                    condition = (((group_1_avaliable_tiles[1,:] == group_2_tiles_with_idxs[1,no_joker_tile_column]) & (np.in1d(group_1_avaliable_tiles[0,:], group_2_tiles_with_idxs[0,:], invert=True))) \
-                        | (group_1_avaliable_tiles[0,:]==0))
-
-                    for tile_idx in group_1_avaliable_tiles[2,condition]:
+                rummikub_groups_condition = self._get_rummikub_groups_condition(group_2_tiles_with_idxs, \
+                    group_1_avaliable_tiles, no_joker_tile_columns)
+                if rummikub_groups_condition is not None:
+                    for tile_idx in group_1_avaliable_tiles[2,rummikub_groups_condition]:
                         moves.append([group_1_idx, group_2_idx, tile_idx])
         
         return moves
@@ -156,12 +130,12 @@ class Solver:
 
         if np.all((destination_group_tiles_with_idxs[0,:] == \
             destination_group_tiles_with_idxs[0,no_joker_tile_columns[0]]) \
-            (destination_group_tiles_with_idxs[0,:] == 0)) and destination_group_tiles_with_idxs.shape[1] < 13:
+            | (destination_group_tiles_with_idxs[0,:] == 0)) and destination_group_tiles_with_idxs.shape[1] < 13:
             
-            condition_jokers_outer_bound = (((source_gropup_tiles_with_idxs[0,:] == destination_group_tiles_with_idxs[0,no_joker_tile_column]) \
+            condition_jokers_outer_bound = (((source_gropup_tiles_with_idxs[0,:] == destination_group_tiles_with_idxs[0,no_joker_tile_columns[0]]) \
                 & ((source_gropup_tiles_with_idxs[1,:] == np.amin(destination_group_tiles_with_idxs[1,no_joker_tile_columns]-1)) \
                 | (source_gropup_tiles_with_idxs[1,:] == np.amax(destination_group_tiles_with_idxs[1,no_joker_tile_columns]+1))))\
-                (source_gropup_tiles_with_idxs[0,:] == 0))
+                | (source_gropup_tiles_with_idxs[0,:] == 0))
             condition = condition_jokers_outer_bound
             jokers_count, jokers_in = self._count_jokers(destination_group_tiles_with_idxs)
 
@@ -171,4 +145,15 @@ class Solver:
                         destination_group_tiles_with_idxs, no_joker_tile_columns, source_gropup_tiles_with_idxs)
                 condition = (condition | condition_jokers_inner_bound)
             
+        return condition
+
+    def _get_rummikub_groups_condition(self, destination_group_tiles_with_idxs, source_group_tiles_with_idxs, no_joker_tile_columns):
+        condition = None
+
+        if np.all((destination_group_tiles_with_idxs[1,:] == destination_group_tiles_with_idxs[1,no_joker_tile_columns[0]]) \
+            | (destination_group_tiles_with_idxs[1,:] == 0)) and destination_group_tiles_with_idxs.shape[1] < 4:
+            condition = (((source_group_tiles_with_idxs[1,:] == destination_group_tiles_with_idxs[1,no_joker_tile_columns[0]]) \
+                & (np.in1d(source_group_tiles_with_idxs[0,:], destination_group_tiles_with_idxs[0,:], invert=True))) \
+                    | (source_group_tiles_with_idxs[0,:]==0))
+
         return condition
