@@ -40,8 +40,9 @@ class Solver:
 
         for actual_idx, (group_1, group_1_idx) in enumerate(zip(groups_from, groups_from_idxs)):
             group_1_tiles_with_idxs = groups_tiles_with_idxs[:,group_1]
-
-            group_1_avaliable_tiles = self._get_group_avaliable_tiles_manipulation(group_1_tiles_with_idxs)
+            no_joker_tile_columns_1 = np.where(group_1_tiles_with_idxs[0,:] > 0)[0]
+            group_1_avaliable_tiles = self._get_group_avaliable_tiles_manipulation(group_1_tiles_with_idxs, 
+                no_joker_tile_columns_1)
 
             groups_2_slice = np.delete(groups_to, actual_idx, axis=0)
             groups_2_idxs = np.delete(groups_to_idxs, actual_idx, axis=0)
@@ -102,15 +103,15 @@ class Solver:
 
         return condition_jokers_inner_bound
 
-    def _get_group_avaliable_tiles_manipulation(self, group_tiles_with_idxs):
+    def _get_group_avaliable_tiles_manipulation(self, group_tiles_with_idxs, no_joker_tile_columns):
         group_tiles_numbers = group_tiles_with_idxs[1,:]
         jokers_count, jokers_in = self._count_jokers(group_tiles_with_idxs)
         if jokers_in != jokers_count:
             group_avaliable_tiles = group_tiles_with_idxs[:,(group_tiles_numbers == np.amax(group_tiles_numbers)) \
-                | (group_tiles_numbers == np.amin(group_tiles_numbers)) | (group_tiles_numbers == 0)]
+                | (group_tiles_numbers == np.amin(group_tiles_numbers[no_joker_tile_columns])) | (group_tiles_numbers == 0)]
         else:
             group_avaliable_tiles = group_tiles_with_idxs[:,(group_tiles_numbers == np.amax(group_tiles_numbers)) \
-                | (group_tiles_numbers == np.amin(group_tiles_numbers))]
+                | (group_tiles_numbers == np.amin(group_tiles_numbers[no_joker_tile_columns]))]
 
         return group_avaliable_tiles
 
