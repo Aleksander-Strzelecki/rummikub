@@ -1,13 +1,16 @@
 import numpy as np
+from scipy.fftpack import diff
 
 from rummikub import Rummikub
 
 class Solver:
-    def __init__(self) -> None:
-        pass
-        # self._nth_positive_smallest_value_with_joker = {}
-        # self._nth_valid_largest_value_with_joker = {}
-        # self._prepare_groups_cache()
+    def __init__(self, groups, groups_idxs) -> None:
+        # pass
+        self._groups = groups
+        self._groups_idxs = groups_idxs
+        self._nth_positive_smallest_value_with_joker = {}
+        self._nth_valid_largest_value_with_joker = {}
+        self._prepare_groups_cache()
 
     def solve_pair(self, player, group):
         player_tiles_idx = np.nonzero(player)[0]
@@ -95,7 +98,9 @@ class Solver:
     def _inner_jokers(self, array):
         array_no_joker = array[array != 0]
         diff_array = np.diff(np.sort(array_no_joker))
-        return np.sum(diff_array // 2)
+        jokers_place = diff_array[diff_array > 1]
+        jokers_inside = np.sum(jokers_place - 2) + jokers_place.size
+        return jokers_inside
 
     def _get_condition_for_jokers_in(self, jokers_out, group_tiles_with_idxs, no_joker_tile_columns, source_group_tiles_with_idxs):
         lower_bound_value_with_jokers = group_tiles_with_idxs[1,no_joker_tile_columns]-1*jokers_out-1
@@ -165,5 +170,26 @@ class Solver:
 
         return condition
 
+    def _get_smallest_largest_value_jokers_in(self, group_tiles_with_idxs, jokers_out):
+        no_joker_tile_columns = np.where(group_tiles_with_idxs[0,:] > 0)[0]
+        lower_bound_value_with_jokers = group_tiles_with_idxs[1,no_joker_tile_columns]-1*jokers_out-1
+        nth_smallest_value_with_joker = np.sort(lower_bound_value_with_jokers)[:jokers_out]
+        nth_positive_smallest_value_with_joker = nth_smallest_value_with_joker[nth_smallest_value_with_joker > 0]
+        upper_bound_value_with_jokers = group_tiles_with_idxs[1,no_joker_tile_columns]+1*jokers_out+1
+        nth_largest_value_with_joker = np.sort(upper_bound_value_with_jokers)[-jokers_out:]
+        nth_valid_largest_value_with_joker = nth_largest_value_with_joker[nth_largest_value_with_joker < 14]
+
+        return nth_positive_smallest_value_with_joker, nth_valid_largest_value_with_joker
+
     def _prepare_groups_cache(self):
-        pass
+        groups_tiles_with_idxs = np.vstack((Rummikub.tiles, np.arange(Rummikub.tiles_number)))
+
+        for group, group_idx in zip(self._groups, self._groups_idxs):
+            group_tiles_with_idxs = groups_tiles_with_idxs[:,group]
+            jokers_count, jokers_in = self._count_jokers(group_tiles_with_idxs)
+            jokers_out = jokers_count - jokers_in
+            if (jokers_count > 0) and (jokers_count != jokers_in):
+                nth_positive_smallest_value_with_joker, nth_largest_value_with_joker = \
+                    self._get_smallest_largest_value_jokers_in(group_tiles_with_idxs, jokers_out)
+                self._nth_valid_largest_value_with_joker[group_idx] = nth_largest_value_with_joker
+                self._nth_positive_smallest_value_with_joker[group_idx] = nth_positive_smallest_value_with_joker

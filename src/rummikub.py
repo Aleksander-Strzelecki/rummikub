@@ -17,7 +17,6 @@ class Rummikub:
         self.players = np.zeros((num_players, 106), dtype=bool)
         self.move_score = 0
         self.tiles_pointers = np.ones((106), dtype=bool)
-        self.create_tiles()
         self.distribute_tiles()
         self.groups = np.zeros((36, 106), dtype=bool)
         self.existing_groups = []
@@ -26,16 +25,17 @@ class Rummikub:
         self.colors_pointers = {0:'magenta', 1:'red', 2:'white', 3:'yellow', 4:'blue'}
         self._reward = 0
         
-    def create_tiles(self):
+    @classmethod
+    def create_tiles(cls):
         colors = [1,2,3,4,1,2,3,4]
         counter = 0
         for color in colors:
             for i in range(1,14):
-                self.tiles[:,counter] = [color, i]
+                cls.tiles[:,counter] = [color, i]
                 counter += 1
-        self.tiles[:,counter] = [0, 0]
+        cls.tiles[:,counter] = [0, 0]
         counter += 1
-        self.tiles[:,counter] = [0, 0]
+        cls.tiles[:,counter] = [0, 0]
 
     def distribute_tiles(self):
         indexes = np.random.choice(106, 14*len(self.players), replace=False)
@@ -203,3 +203,6 @@ class Rummikub:
 
     def _get_reward(self):
         return self._reward
+
+print("Initializing rummikub tiles")
+Rummikub.create_tiles()
