@@ -72,6 +72,7 @@ def test_get_rummikub_series_condition(groups_test_case):
 
     assert condition == np.array([True])
 
+
 @pytest.mark.parametrize("idx, down, up",[(0, None, None),(1, None, None), (2, None, None), (3, np.array([1,2]), np.array([7,8])),\
     (4, np.array([2]), np.array([7])), (5, np.array([2]), np.array([8])), (6, np.array([]), np.array([4,5])), (7, np.array([]), np.array([5])),\
         (8, np.array([9,10]), np.array([])), (9, np.array([9]), np.array([])), (10, None, None)])
@@ -89,3 +90,15 @@ def test_prepare_groups_cache(groups_test_case, idx, down, up):
         assert solver._nth_valid_largest_value_with_joker.get(idx) is None
     else:
         assert False
+
+
+valid_player_tiles = [np.array([3,55,104,105]), np.array([0,5,52,57,104,105]), np.array([4,56,104,105]),\
+    np.array([0,1,2,5,6,7,52,53,54,57,58,59,104,105]), np.array([1,2,5,6,53,54,57,58,104,105]), \
+        np.array([1,2,6,7,53,54,58,59,104,105]), np.array([2,3,4,54,55,56,104,105]), \
+        np.array([3,4,55,56,104,105]), np.array([8,9,10,60,61,62,104,105]), np.array([8,9,60,61,104,105]), np.array([5,11,57,63,104,105])]
+@pytest.mark.parametrize("result_idx", valid_player_tiles, ids=list(range(len(valid_player_tiles))))
+def test_solve_pair(groups_test_case, result_idx, request):
+    solver = Solver(groups_test_case[0], groups_test_case[1])
+    player_tiles_array = np.ones((Rummikub.tiles_number,), dtype=bool)
+    result = solver.solve_pair(player_tiles_array, groups_test_case[0][int(request.node.callspec.id)])
+    assert np.array_equal(result, result_idx) 
