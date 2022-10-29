@@ -5,6 +5,9 @@ from rummikub import Rummikub
 class Solver:
     def __init__(self) -> None:
         pass
+        # self._nth_positive_smallest_value_with_joker = {}
+        # self._nth_valid_largest_value_with_joker = {}
+        # self._prepare_groups_cache()
 
     def solve_pair(self, player, group):
         player_tiles_idx = np.nonzero(player)[0]
@@ -41,8 +44,11 @@ class Solver:
         for actual_idx, (group_1, group_1_idx) in enumerate(zip(groups_from, groups_from_idxs)):
             group_1_tiles_with_idxs = groups_tiles_with_idxs[:,group_1]
             no_joker_tile_columns_1 = np.where(group_1_tiles_with_idxs[0,:] > 0)[0]
-            group_1_avaliable_tiles = self._get_group_avaliable_tiles_manipulation(group_1_tiles_with_idxs, 
-                no_joker_tile_columns_1)
+            if no_joker_tile_columns_1.size == 0:
+                group_1_avaliable_tiles = group_1_tiles_with_idxs
+            else:
+                group_1_avaliable_tiles = self._get_group_avaliable_tiles_manipulation(group_1_tiles_with_idxs, 
+                    no_joker_tile_columns_1)
 
             groups_2_slice = np.delete(groups_to, actual_idx, axis=0)
             groups_2_idxs = np.delete(groups_to_idxs, actual_idx, axis=0)
@@ -98,7 +104,7 @@ class Solver:
         upper_bound_value_with_jokers = group_tiles_with_idxs[1,no_joker_tile_columns]+1*jokers_out+1
         nth_largest_value_with_joker = np.sort(upper_bound_value_with_jokers)[-jokers_out:]
         nth_valid_largest_value_with_joker = nth_largest_value_with_joker[nth_largest_value_with_joker < 14]
-        condition_jokers_inner_bound = ((source_group_tiles_with_idxs[0,:] == group_tiles_with_idxs[0,no_joker_tile_columns]) \
+        condition_jokers_inner_bound = ((source_group_tiles_with_idxs[0,:] == group_tiles_with_idxs[0,no_joker_tile_columns[0]]) \
             & ((np.in1d(source_group_tiles_with_idxs[1,:], nth_positive_smallest_value_with_joker)) | (np.in1d(source_group_tiles_with_idxs[1,:], nth_valid_largest_value_with_joker))))
 
         return condition_jokers_inner_bound
@@ -158,3 +164,6 @@ class Solver:
                     | (source_group_tiles_with_idxs[0,:]==0))
 
         return condition
+
+    def _prepare_groups_cache(self):
+        pass
