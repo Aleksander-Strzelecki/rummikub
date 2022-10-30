@@ -186,10 +186,16 @@ class Solver:
 
         for group, group_idx in zip(self._groups, self._groups_idxs):
             group_tiles_with_idxs = groups_tiles_with_idxs[:,group]
-            jokers_count, jokers_in = self._count_jokers(group_tiles_with_idxs)
-            jokers_out = jokers_count - jokers_in
-            if (jokers_count > 0) and (jokers_count != jokers_in):
-                nth_positive_smallest_value_with_joker, nth_largest_value_with_joker = \
-                    self._get_smallest_largest_value_jokers_in(group_tiles_with_idxs, jokers_out)
-                self._nth_valid_largest_value_with_joker[group_idx] = nth_largest_value_with_joker
-                self._nth_positive_smallest_value_with_joker[group_idx] = nth_positive_smallest_value_with_joker
+            no_joker_tile_columns = np.where(group_tiles_with_idxs[0,:] > 0)[0]
+            if no_joker_tile_columns.size == 0:
+                continue
+            if np.all((group_tiles_with_idxs[0,:] == \
+            group_tiles_with_idxs[0,no_joker_tile_columns[0]]) \
+            | (group_tiles_with_idxs[0,:] == 0)) and group_tiles_with_idxs.shape[1] < 13:
+                jokers_count, jokers_in = self._count_jokers(group_tiles_with_idxs)
+                jokers_out = jokers_count - jokers_in
+                if (jokers_count > 0) and (jokers_count != jokers_in):
+                    nth_positive_smallest_value_with_joker, nth_largest_value_with_joker = \
+                        self._get_smallest_largest_value_jokers_in(group_tiles_with_idxs, jokers_out)
+                    self._nth_valid_largest_value_with_joker[group_idx] = nth_largest_value_with_joker
+                    self._nth_positive_smallest_value_with_joker[group_idx] = nth_positive_smallest_value_with_joker
