@@ -354,7 +354,7 @@ class MonteCarloTreeSearchNode():
     def _build_state_estimate_model(cls):
         input_dim = Rummikub.tiles_number+1 # one bit true if player false if group
         cls.batch_size = 4
-        units = 32
+        units = 64
         output_size = 1
 
         model = keras.models.Sequential(
