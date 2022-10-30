@@ -6,6 +6,7 @@ import tensorflow as tf
 from tensorflow import keras
 from rummikub import Rummikub
 from dataset import DataSet
+import os
 
 class StateANN():
     @staticmethod
@@ -132,6 +133,7 @@ class MonteCarloTreeSearchNode():
     player_tiles_less = 0
     state_estimate_model = None
     groups_estimate_model = None
+    model_checkpoint_callback = None
     BUFFER_SIZE = 10
     POSITIVE_BUFFER_SIZE = 100
 
@@ -226,8 +228,8 @@ class MonteCarloTreeSearchNode():
             x_train_positive, y_train_positive = positive_dataset.get_data()
             x_concatenate = np.concatenate((x_train, x_train_positive), axis=0) if x_train_positive.size else x_train
             y_concatenate = np.concatenate((y_train, y_train_positive), axis=0) if y_train_positive.size else y_train
-            self.state_estimate_model.fit(x_concatenate,\
-                 y_concatenate)
+            self.state_estimate_model.fit(x_concatenate,
+                 y_concatenate, callbacks=[self.model_checkpoint_callback])
 
         return dataset, positive_dataset
 
@@ -370,7 +372,16 @@ class MonteCarloTreeSearchNode():
             metrics=["accuracy"],
         )
 
+        checkpoint_filepath = './models/checkpoint'
+        cls.model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+            filepath=checkpoint_filepath,
+            save_weights_only=True,
+            save_freq=10)
+        
+        if os.path.isfile(checkpoint_filepath): 
+            model.load_weights(checkpoint_filepath)
         cls.state_estimate_model = model
+        
 
     @classmethod
     def _build_groups_estimate_model(cls):
