@@ -75,7 +75,7 @@ def groups_test_case():
     for i in range(len(groups_test)):
         groups_test_idxs.append(i)
 
-    return np.array(groups_test), groups_test_idxs
+    return np.array(groups_test)
 
 @pytest.fixture
 def groups_manipulation_test_case():
@@ -114,21 +114,21 @@ def groups_manipulation_test_case():
     group = np.copy(group_tiles_array)
     group[[0,1,2,3,4,5,6,7,8,9,10,11,12]] = True
     groups_test.append(group)
-    #8 (1b,2b,3b)
+    #8 ()
+    group = np.copy(group_tiles_array)
+    groups_test.append(group)
+    #9 (1b,2b,3b)
     group = np.copy(group_tiles_array)
     group[[13,14,15]] = True
-    groups_test.append(group)
-    #9 ()
-    group = np.copy(group_tiles_array)
     groups_test.append(group)
 
     for i in range(len(groups_test)):
         groups_test_idxs.append(i)
 
-    return np.array(groups_test), groups_test_idxs
+    return np.array(groups_test)
 
 def test_get_rummikub_series_condition(groups_test_case):
-    solver = Solver(groups_test_case[0], groups_test_case[1])
+    solver = Solver(groups_test_case)
     destination_group_tiles_with_idxs = np.array([[3,3,0],
                                                 [7,8,0],
                                                 [32,85,104]])
@@ -147,7 +147,7 @@ def test_get_rummikub_series_condition(groups_test_case):
         (8, np.array([9,10]), np.array([])), (9, np.array([9]), np.array([])), (10, None, None), (11, None, None), (12, None, None), \
             (13, None, None), (14, None, None)])
 def test_prepare_groups_cache(groups_test_case, idx, down, up):
-    solver = Solver(groups_test_case[0], groups_test_case[1])
+    solver = Solver(groups_test_case)
     if down is not None:
         assert np.array_equal(solver._nth_positive_smallest_value_with_joker.get(idx), down)
     elif down is None:
@@ -169,27 +169,27 @@ valid_player_tiles = [np.array([3,55,104,105]), np.array([0,5,52,57,104,105]), n
             np.array([]), np.array([29,42,81,94,104,105]), np.array([29,42,81,94,104,105]), np.array(list(range(106))), np.array(list(range(106)))]
 @pytest.mark.parametrize("result_idx", valid_player_tiles, ids=list(range(len(valid_player_tiles))))
 def test_solve_pair(groups_test_case, result_idx, request):
-    solver = Solver(groups_test_case[0], groups_test_case[1])
+    solver = Solver(groups_test_case)
     player_tiles_array = np.ones((Rummikub.tiles_number,), dtype=bool)
-    result = solver.solve_pair(player_tiles_array, groups_test_case[0][int(request.node.callspec.id)])
+    result = solver.solve_pair(player_tiles_array, groups_test_case[int(request.node.callspec.id)])
     assert np.array_equal(result, result_idx) 
 
 
 def test_solve_manipulation(groups_manipulation_test_case):
     groups, groups_idxs = groups_manipulation_test_case[0], groups_manipulation_test_case[1]
     groups_no_empty, groups_no_empty_idxs = groups[:-1], groups_idxs[:-1]
-    solver = Solver(groups_manipulation_test_case[0], groups_manipulation_test_case[1])
+    solver = Solver(groups_manipulation_test_case)
 
     possible_moves = [[0,1,5],[0,1,6],[0,2,5],[0,3,4],[0,3,5],[0,3,6],[0,4,4],[0,4,5],[0,4,6],\
         [1,0,7],[1,2,7],[1,3,4],[1,3,7],[1,4,4],[1,4,7],[2,1,6], \
         [2,3,4],[2,3,6],[2,4,4],[2,4,6], \
         [3,0,3],[3,0,104],[3,0,105],[3,1,3],[3,1,104],[3,1,105],[3,2,3],[3,2,104],[3,2,105], \
-        [3,4,2],[3,4,3],[3,4,104],[3,4,105],[3,6,104],[3,6,105],[3,8,104],[3,8,105], \
-        [4,0,104],[4,1,104],[4,2,104],[4,3,104],[4,6,104],[4,8,104],[5,0,3],[5,1,3],[5,2,3],[5,4,3],[5,4,16],[5,4,29],[5,4,42],[5,8,16], \
+        [3,4,2],[3,4,3],[3,4,104],[3,4,105],[3,6,104],[3,6,105],[3,9,104],[3,9,105], \
+        [4,0,104],[4,1,104],[4,2,104],[4,3,104],[4,6,104],[4,9,104],[5,0,3],[5,1,3],[5,2,3],[5,4,3],[5,4,16],[5,4,29],[5,4,42],[5,9,16], \
         [6,0,104],[6,1,5],[6,1,104],[6,2,5],[6,2,104],[6,3,5],[6,3,104],[6,4,5],[6,4,18],[6,4,104], \
-        [6,5,104],[6,8,104],[7,3,0],[7,4,0],[7,4,12],[8,4,13],[8,4,15], \
-        [0,9,4],[0,9,6],[1,9,4],[1,9,7],[2,9,4],[2,9,6],[3,9,2],[3,9,3],[3,9,104],[3,9,105],[4,9,104], \
-        [5,9,3],[5,9,16],[5,9,29],[5,9,42],[6,9,5],[6,9,18],[6,9,104],[7,9,0],[7,9,12],[8,9,13],[8,9,15]]
-    moves = solver.solve_manipulation(groups_no_empty, groups, groups_no_empty_idxs, groups_idxs)
+        [6,5,104],[6,9,104],[7,3,0],[7,4,0],[7,4,12],[9,4,13],[9,4,15], \
+        [0,8,4],[0,8,6],[1,8,4],[1,8,7],[2,8,4],[2,8,6],[3,8,2],[3,8,3],[3,8,104],[3,8,105],[4,8,104], \
+        [5,8,3],[5,8,16],[5,8,29],[5,8,42],[6,8,5],[6,8,18],[6,8,104],[7,8,0],[7,8,12],[8,8,13],[8,8,15]]
+    moves = solver.solve_manipulation()
     for move in moves:
         assert move in possible_moves
