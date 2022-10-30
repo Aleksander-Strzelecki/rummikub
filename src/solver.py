@@ -16,7 +16,7 @@ class Solver:
         self._nth_valid_largest_value_with_joker = {}
         self._prepare_groups_cache()
 
-    def solve_pair(self, player, group):
+    def solve_pair(self, player, group, group_idx):
         player_tiles_idx = np.nonzero(player)[0]
         group_tiles_idx = np.nonzero(group)[0]
 
@@ -34,7 +34,7 @@ class Solver:
         if no_joker_tile_columns.size == 0:
             return player_tiles_idx
 
-        rummikub_series_condition = self._get_rummikub_series_condition(group_tiles, player_tiles, no_joker_tile_columns)
+        rummikub_series_condition = self._get_rummikub_series_condition(group_tiles, player_tiles, no_joker_tile_columns, group_idx)
         if rummikub_series_condition is not None:
             result = np.hstack([result, player_tiles[2,rummikub_series_condition]])
 
@@ -44,11 +44,20 @@ class Solver:
 
         return np.unique(result)
 
+    def solve_player_groups(self, player):
+        moves = []
+        for group, group_idx in zip(self._groups, self._groups_idxs):
+            tiles_idxs = self.solve_no_duplicates(player, group, group_idx)
+            for tile_idx in tiles_idxs:
+                moves.append([0, group_idx+1, tile_idx])
+        
+        return moves
+    
     def solve_manipulation(self):
         moves = []
         groups_tiles_with_idxs = np.vstack((Rummikub.tiles, np.arange(Rummikub.tiles_number)))
 
-        for actual_idx, (group_1, group_1_idx) in enumerate(zip(self._groups, self._groups_idxs)):
+        for (group_1, group_1_idx) in zip(self._groups_no_empty, self._groups_no_empty_idxs):
             group_1_tiles_with_idxs = groups_tiles_with_idxs[:,group_1]
             no_joker_tile_columns_1 = np.where(group_1_tiles_with_idxs[0,:] > 0)[0]
             if no_joker_tile_columns_1.size == 0:
@@ -57,9 +66,9 @@ class Solver:
                 group_1_avaliable_tiles = self._get_group_avaliable_tiles_manipulation(group_1_tiles_with_idxs, 
                     no_joker_tile_columns_1)
 
-            idx_to_cut = np.where(self._groups_no_empty_idxs == group_1_idx)[0]
-            groups_2_slice = np.delete(self._groups_no_empty, idx_to_cut, axis=0)
-            groups_2_idxs = np.delete(self._groups_no_empty_idxs, idx_to_cut, axis=0)
+            idx_to_cut = np.where(self._groups_idxs == group_1_idx)[0]
+            groups_2_slice = np.delete(self._groups, idx_to_cut, axis=0)
+            groups_2_idxs = np.delete(self._groups_idxs, idx_to_cut, axis=0)
 
             for group_2, group_2_idx in zip(groups_2_slice, groups_2_idxs):
                 group_2_tiles_with_idxs = groups_tiles_with_idxs[:,group_2]
@@ -72,7 +81,7 @@ class Solver:
                     continue
 
                 rummikub_series_condition = self._get_rummikub_series_condition(group_2_tiles_with_idxs, \
-                    group_1_avaliable_tiles, no_joker_tile_columns, group_1_idx)
+                    group_1_avaliable_tiles, no_joker_tile_columns, group_2_idx)
                 if rummikub_series_condition is not None:
                     for tile_idx in group_1_avaliable_tiles[2,rummikub_series_condition]:
                         moves.append([group_1_idx, group_2_idx, tile_idx])
@@ -85,8 +94,8 @@ class Solver:
         
         return moves
 
-    def solve_no_duplicates(self, player, group):
-        tiles_idxs = self.solve_pair(player, group)
+    def solve_no_duplicates(self, player, group, group_idx):
+        tiles_idxs = self.solve_pair(player, group, group_idx)
         tiles_idxs_bool = np.zeros((Rummikub.tiles_number), dtype=bool)
         tiles_idxs_bool[tiles_idxs] = True
         tiles_idxs_bool[:Rummikub.reduced_tiles_number-2] = tiles_idxs_bool[:Rummikub.reduced_tiles_number-2] \
@@ -108,9 +117,9 @@ class Solver:
         return jokers_inside
 
     def _get_condition_for_jokers_in(self, jokers_out, group_tiles_with_idxs, no_joker_tile_columns, source_group_tiles_with_idxs, \
-        source_group_idx):
-        nth_positive_smallest_value_with_joker = self._nth_positive_smallest_value_with_joker.get(source_group_idx)
-        nth_valid_largest_value_with_joker = self._nth_valid_largest_value_with_joker.get(source_group_idx)
+        destinatio_group_idx):
+        nth_positive_smallest_value_with_joker = self._nth_positive_smallest_value_with_joker.get(destinatio_group_idx)
+        nth_valid_largest_value_with_joker = self._nth_valid_largest_value_with_joker.get(destinatio_group_idx)
         condition_jokers_inner_bound = ((source_group_tiles_with_idxs[0,:] == group_tiles_with_idxs[0,no_joker_tile_columns[0]]) \
             & ((np.in1d(source_group_tiles_with_idxs[1,:], nth_positive_smallest_value_with_joker)) | (np.in1d(source_group_tiles_with_idxs[1,:], nth_valid_largest_value_with_joker))))
 
@@ -139,7 +148,7 @@ class Solver:
 
         return jokers_count, jokers_in
 
-    def _get_rummikub_series_condition(self, destination_group_tiles_with_idxs, source_gropup_tiles_with_idxs, no_joker_tile_columns, source_group_idx):
+    def _get_rummikub_series_condition(self, destination_group_tiles_with_idxs, source_gropup_tiles_with_idxs, no_joker_tile_columns, destination_group_idx):
         condition = None
 
         if np.all((destination_group_tiles_with_idxs[0,:] == \
@@ -156,7 +165,7 @@ class Solver:
             if (jokers_count > 0) and (jokers_count != jokers_in):
                 condition_jokers_inner_bound = \
                     self._get_condition_for_jokers_in(jokers_count - jokers_in, \
-                        destination_group_tiles_with_idxs, no_joker_tile_columns, source_gropup_tiles_with_idxs, source_group_idx)
+                        destination_group_tiles_with_idxs, no_joker_tile_columns, source_gropup_tiles_with_idxs, destination_group_idx)
                 condition = (condition | condition_jokers_inner_bound)
             
         return condition
