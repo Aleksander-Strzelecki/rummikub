@@ -42,7 +42,7 @@ class Solver:
 
         return np.unique(result)
 
-    def solve_player_groups(self, player):
+    def solve_player_groups(self, player, offset=0):
         moves = []
         rummikub_tiles_with_idxs = np.vstack((Rummikub.tiles, np.arange(Rummikub.tiles_number)))
         player_tiles_with_idxs = rummikub_tiles_with_idxs[:,player]
@@ -51,11 +51,11 @@ class Solver:
             tiles_idxs = self.solve_no_duplicates(player_tiles_with_idxs, group_tiles_with_idxs,
              group_idx)
             for tile_idx in tiles_idxs:
-                moves.append([-1, group_idx, tile_idx])
+                moves.append([-1+offset, group_idx+offset, tile_idx])
         
         return moves
     
-    def solve_manipulation(self):
+    def solve_manipulation(self, offset=0):
         moves = []
         groups_tiles_with_idxs = np.vstack((Rummikub.tiles, np.arange(Rummikub.tiles_number)))
 
@@ -76,7 +76,7 @@ class Solver:
                 group_2_tiles_with_idxs = groups_tiles_with_idxs[:,group_2]
                 tiles_idxs = self.solve_pair(group_1_avaliable_tiles, group_2_tiles_with_idxs, group_2_idx)
                 for tile_idx in tiles_idxs:
-                    moves.append([group_1_idx, group_2_idx, tile_idx])
+                    moves.append([group_1_idx+offset, group_2_idx+offset, tile_idx])
         
         return moves
 

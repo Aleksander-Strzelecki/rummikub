@@ -41,16 +41,16 @@ class MonteCarloSearchTreeState():
         self.any_groups = any_groups
 
         moves = []
-        solver = Solver()
+        solver = Solver(groups)
+        moves.extend(solver.solve_player_groups(player, offset=1))
         ################ GROUP EXTENDING ####################
-        for group, group_idx in zip(any_groups, any_groups_idx):
-            tiles_idxs = solver.solve_no_duplicates(player, group)
-            for tile_idx in tiles_idxs:
-                moves.append([0, group_idx+1, tile_idx])
+        # for group, group_idx in zip(any_groups, any_groups_idx):
+        #     tiles_idxs = solver.solve_no_duplicates(player, group)
+        #     for tile_idx in tiles_idxs:
+        #         moves.append([0, group_idx+1, tile_idx])
 
         ############### GROUP MANIPULATION ##################
-        moves.extend(solver.solve_manipulation(any_groups_no_empty_group, any_groups, \
-            any_groups_no_empty_group_idxs+1, any_groups_idx+1))
+        moves.extend(solver.solve_manipulation(offset=1))
         
         ################## TABLE VALIDATION ####################
         if Solver.check_board(self.state[1:,:]) and self.move_done:
