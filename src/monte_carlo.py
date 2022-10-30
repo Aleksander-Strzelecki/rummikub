@@ -42,13 +42,8 @@ class MonteCarloSearchTreeState():
 
         moves = []
         solver = Solver(groups)
-        moves.extend(solver.solve_player_groups(player, offset=1))
         ################ GROUP EXTENDING ####################
-        # for group, group_idx in zip(any_groups, any_groups_idx):
-        #     tiles_idxs = solver.solve_no_duplicates(player, group)
-        #     for tile_idx in tiles_idxs:
-        #         moves.append([0, group_idx+1, tile_idx])
-
+        moves.extend(solver.solve_player_groups(player, offset=1))
         ############### GROUP MANIPULATION ##################
         moves.extend(solver.solve_manipulation(offset=1))
         
