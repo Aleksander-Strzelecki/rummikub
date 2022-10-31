@@ -1,12 +1,14 @@
-from tabnanny import verbose
 import numpy as np
-from collections import defaultdict
-from solver import Solver
 import tensorflow as tf
+import os
+import global_variables.tensorboard_variables as tbv
+
 from tensorflow import keras
 from rummikub import Rummikub
 from dataset import DataSet
-import os
+from callbacks.custom_tensorboard import CustomTensorboard
+from collections import defaultdict
+from solver import Solver
 
 class StateANN():
     @staticmethod
@@ -134,6 +136,7 @@ class MonteCarloTreeSearchNode():
     state_estimate_model = None
     groups_estimate_model = None
     model_checkpoint_callback = None
+    model_custom_tensorboard_callback = None
     BUFFER_SIZE = 50
     POSITIVE_BUFFER_SIZE = 500
 
@@ -228,8 +231,7 @@ class MonteCarloTreeSearchNode():
             x_train_positive, y_train_positive = positive_dataset.get_data()
             x_concatenate = np.concatenate((x_train, x_train_positive), axis=0) if x_train_positive.size else x_train
             y_concatenate = np.concatenate((y_train, y_train_positive), axis=0) if y_train_positive.size else y_train
-            self.state_estimate_model.fit(x_concatenate,
-                 y_concatenate, callbacks=[self.model_checkpoint_callback])
+            self._fit_model_with_callbacks(x_concatenate, y_concatenate, result, propagated_reward)
 
         return dataset, positive_dataset
 
@@ -345,9 +347,18 @@ class MonteCarloTreeSearchNode():
     def _reward_function(self, reward):
         return np.array([[1/(1 + np.exp(5-3*reward))]])
 
+    def _fit_model_with_callbacks(self, x_train, y_train, result, propagated_reward):
+        if result > 0.9:
+            tbv.tensorboard_move_done = True
+            tbv.tensorboard_tiles_laid = propagated_reward
+        else:
+            tbv.tensorboard_tiles_laid = 0
+            tbv.tensorboard_move_done = False
+        self.state_estimate_model.fit(x_train,
+                 y_train, callbacks=[self.model_checkpoint_callback, self.model_custom_tensorboard_callback])
+
     @classmethod
     def create_models(cls):
-        cls._build_groups_estimate_model()
         cls._build_state_estimate_model()
 
     @classmethod
@@ -376,32 +387,10 @@ class MonteCarloTreeSearchNode():
             filepath=checkpoint_filepath,
             save_weights_only=True,
             save_freq=10)
+
+        cls.model_custom_tensorboard_callback = CustomTensorboard()
         
         if os.path.isfile(checkpoint_filepath): 
             model.load_weights(checkpoint_filepath)
         cls.state_estimate_model = model
         
-
-    @classmethod
-    def _build_groups_estimate_model(cls):
-        input_dim = Rummikub.tiles_number+1 # one bit true if player false if group
-        cls.batch_size = 4
-        units = 32
-        output_size = 1
-
-        model = keras.models.Sequential(
-        [
-            keras.layers.Bidirectional(keras.layers.LSTM(units, return_sequences=True), \
-                input_shape=(None, input_dim)),
-            keras.layers.BatchNormalization(),
-            keras.layers.Dense(output_size, activation='sigmoid'),
-        ]
-        )
-
-        model.compile(
-            loss='categorical_crossentropy',
-            optimizer='adam',
-            metrics=["accuracy"],
-        )
-
-        cls.groups_estimate_model = model
