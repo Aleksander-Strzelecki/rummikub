@@ -386,7 +386,7 @@ class MonteCarloTreeSearchNode():
         cls.model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
             filepath=checkpoint_filepath,
             save_weights_only=True,
-            save_freq=10)
+            save_freq=100)
 
         cls.model_custom_tensorboard_callback = CustomTensorboard()
         
