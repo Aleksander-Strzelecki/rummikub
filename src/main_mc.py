@@ -5,7 +5,7 @@ import time
 from dataset import DataSet
 
 if __name__ == '__main__':
-    game = Rummikub(2)
+    game = Rummikub(2, learning=True)
     state = game.reset()
     buffer = DataSet()
     positive_buffer = DataSet()

@@ -10,20 +10,21 @@ class Rummikub:
     tiles = np.zeros((2, 106), dtype=int)
     tiles_number = 106
     reduced_tiles_number = 54
-    def __init__(self, num_players) -> None:
+    def __init__(self, num_players, learning=False) -> None:
         self.activ = 0
         self.move_done = False
         self.num_players = num_players
         self.players = np.zeros((num_players, 106), dtype=bool)
         self.move_score = 0
         self.tiles_pointers = np.ones((106), dtype=bool)
-        self.distribute_tiles()
         self.groups = np.zeros((36, 106), dtype=bool)
         self.existing_groups = []
         self.groups_backup = self.groups.copy()
         self.players_backup = self.players.copy()
         self.colors_pointers = {0:'magenta', 1:'red', 2:'white', 3:'yellow', 4:'blue'}
         self._reward = 0
+        self._learning = learning
+        self.distribute_tiles()
         
     @classmethod
     def create_tiles(cls):
@@ -38,9 +39,13 @@ class Rummikub:
         cls.tiles[:,counter] = [0, 0]
 
     def distribute_tiles(self):
-        indexes = np.random.choice(106, 14*len(self.players), replace=False)
+        if self._learning:
+            tiles_per_player = 106 // len(self.players)
+        else:
+            tiles_per_player = 14
+        indexes = np.random.choice(106, tiles_per_player*len(self.players), replace=False)
         for idx in range(self.num_players):
-            choice = indexes[14*idx:14*(idx+1)]
+            choice = indexes[tiles_per_player*idx:tiles_per_player*(idx+1)]
             self.players[idx, choice] = True
             self.tiles_pointers[choice] = False
 
