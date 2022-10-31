@@ -121,6 +121,13 @@ class Rummikub:
             self.tiles_pointers[selected_tiles] = False
             self.activ = (self.activ + 1) % self.num_players
             self._commit()
+        elif from_group == 101 and not np.any(self.tiles_pointers):
+            self.move_done = False
+            self.move_score = 0
+            self._reward = 0
+            self._rollback()
+            self.activ = (self.activ + 1) % self.num_players
+            self._commit()
 
         return self._get_state(), self._get_reward()
 
