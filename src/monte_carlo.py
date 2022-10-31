@@ -134,15 +134,15 @@ class MonteCarloTreeSearchNode():
     state_estimate_model = None
     groups_estimate_model = None
     model_checkpoint_callback = None
-    BUFFER_SIZE = 10
-    POSITIVE_BUFFER_SIZE = 100
+    BUFFER_SIZE = 50
+    POSITIVE_BUFFER_SIZE = 500
 
     def __init__(self, state: MonteCarloSearchTreeState, parent=None, parent_action=None):
         self.state = state
         self.parent = parent
         self.parent_action = parent_action
         self.children = []
-        self._number_of_visits = 0
+        self._number_of_visits = 1
         self._results = defaultdict(int)
         self._groups_extended = 0
         self._results_accepted = defaultdict(int)
@@ -221,7 +221,7 @@ class MonteCarloTreeSearchNode():
         result_train = self._get_result_train()
         self._extend_datasets(dataset, positive_dataset, result_train)
         if self.parent:
-            self.parent.backpropagate(result, child=self, propagated_reward=propagated_reward, \
+            self.parent.backpropagate(result, child=self, propagated_reward=propagated_reward,
                 dataset=dataset, positive_dataset=positive_dataset)
         else:
             x_train, y_train = dataset.get_data()
@@ -369,7 +369,6 @@ class MonteCarloTreeSearchNode():
         model.compile(
             loss='mean_squared_error',
             optimizer='adam',
-            metrics=["accuracy"],
         )
 
         checkpoint_filepath = './models/checkpoint'
