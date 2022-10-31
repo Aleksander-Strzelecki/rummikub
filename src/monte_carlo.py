@@ -382,7 +382,7 @@ class MonteCarloTreeSearchNode():
             optimizer='adam',
         )
 
-        checkpoint_filepath = './models/checkpoint'
+        checkpoint_filepath = '/content/drive/MyDrive/rummikub/models/checkpoint'
         cls.model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
             filepath=checkpoint_filepath,
             save_weights_only=True,
