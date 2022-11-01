@@ -1,6 +1,7 @@
 import numpy as np
 import json
 import os
+import global_variables.tensorboard_variables as tbv
 
 class DataSet():
     def __init__(self, name, path):
@@ -45,3 +46,6 @@ class DataSet():
             self.y = d['y']
         else:
             print('creating new {} dataset'.format(self.name))
+
+    def tensorboard_update(self):
+        tbv.tensorboard_buffer_elements[self.name] = len(self.x)

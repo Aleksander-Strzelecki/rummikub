@@ -304,6 +304,8 @@ class MonteCarloTreeSearchNode():
             buffer, positive_buffer = v.backpropagate(reward, dataset=buffer, positive_dataset=positive_buffer)
             buffer.shrink(self.BUFFER_SIZE)
             positive_buffer.shrink(self.POSITIVE_BUFFER_SIZE)
+            buffer.tensorboard_update()
+            positive_buffer.tensorboard_update()
         self._save_datasets([buffer, positive_buffer])
 
         child = self.best_child(c_param=0., ann_param=0., verbose=True)
