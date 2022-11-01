@@ -4,7 +4,8 @@ from tensorflow import keras
 from datetime import datetime
 
 class CustomTensorboard(tf.keras.callbacks.Callback):
-    logdir = "/content/drive/MyDrive/rummikub/logs/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+    path_prefix = ''
+    logdir = path_prefix + "logs/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
     file_writer = tf.summary.create_file_writer(logdir + "/metrics")
     file_writer.set_as_default()
     total_epoch = 0

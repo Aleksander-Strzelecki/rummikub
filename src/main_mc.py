@@ -3,14 +3,25 @@ import monte_carlo
 import numpy as np
 import time
 from dataset import DataSet
+import argparse
+
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Just an example",
+                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-gd", "--gdrive", action="store_true", help="google drive mode")
+    args = parser.parse_args()
+    if args.gdrive:
+        path_prefix = '/content/drive/MyDrive/rummikub/'
+    else:
+        path_prefix = ''
+
     game = Rummikub(2, learning=True)
     state = game.reset()
     buffer = DataSet()
     positive_buffer = DataSet()
     mc_state = monte_carlo.MonteCarloSearchTreeState(state)
-    monte_carlo.MonteCarloTreeSearchNode.create_models()
+    monte_carlo.MonteCarloTreeSearchNode.create_models(path_prefix)
     while True:
         game.render()
         root = monte_carlo.MonteCarloTreeSearchNode(state = mc_state)

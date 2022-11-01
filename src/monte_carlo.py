@@ -82,7 +82,7 @@ class MonteCarloSearchTreeState():
             # TODO player tiles laid started from this state
             # return 1
         if self._accepted and self.move_done:
-            return 1
+            return 0.2
         elif self._accepted:
             return 0.2
         return 0
@@ -137,19 +137,20 @@ class MonteCarloTreeSearchNode():
     groups_estimate_model = None
     model_checkpoint_callback = None
     model_custom_tensorboard_callback = None
-    BUFFER_SIZE = 50
-    POSITIVE_BUFFER_SIZE = 500
+    BUFFER_SIZE = 1000
+    POSITIVE_BUFFER_SIZE = 10000
 
     def __init__(self, state: MonteCarloSearchTreeState, parent=None, parent_action=None):
         self.state = state
         self.parent = parent
         self.parent_action = parent_action
         self.children = []
-        self._number_of_visits = 1
+        self._number_of_visits = 0
         self._results = defaultdict(int)
         self._groups_extended = 0
         self._results_accepted = defaultdict(int)
         self._untried_actions = None
+        self._prev_max_accepted_reward = 0
         self._untried_actions = self.untried_actions()
         self._untried_states_ann = self._get_possible_states(self.state, self._untried_actions)
         return
@@ -216,6 +217,7 @@ class MonteCarloTreeSearchNode():
     def backpropagate(self, result, child=None, propagated_reward=0, dataset:DataSet=None, positive_dataset:DataSet=None):
         self._number_of_visits += 1.
         if child and result > 0:
+            self._update_prev_accepted_reward()
             self._results_accepted[child] = self._results[child] + propagated_reward
             propagated_reward = max(self._results_accepted.values())
             self._results_accepted[child] = max(self._results_accepted[child], result)
@@ -241,7 +243,7 @@ class MonteCarloTreeSearchNode():
     def best_child(self, c_param=0.3, ann_param=1.0, verbose=False):
         children_estimation_ann = self.state_estimate_model.predict(self._untried_states_ann, verbose=0)
 
-        choices_weights = [c.q() + c_param * ((np.log(self.n()) / (c.n() + 1))) + ann_param * ann_estimation\
+        choices_weights = [c.q() + c_param * ((np.log(self.n() + 1) / (c.n() + 1))) + ann_param * ann_estimation\
              for c, ann_estimation in zip(self.children, children_estimation_ann)]
         if verbose:
             print(self._results_accepted)
@@ -340,12 +342,17 @@ class MonteCarloTreeSearchNode():
 
     def _extend_datasets(self, dataset:DataSet, positive_dataset:DataSet, train_reward):
         reward_function_return = self._reward_function(train_reward)
-        if train_reward > 1:
+        if (train_reward >= 1) and (train_reward > self._prev_max_accepted_reward):
             positive_dataset.extend_dataset(StateANN.get_state_ann(self.state.state), reward_function_return)
-        dataset.extend_dataset(StateANN.get_state_ann(self.state.state), reward_function_return)
+        if (self._number_of_visits == 1) or ((train_reward >= 1) and (train_reward > self._prev_max_accepted_reward)):
+            dataset.extend_dataset(StateANN.get_state_ann(self.state.state), reward_function_return)
 
     def _reward_function(self, reward):
         return np.array([[1/(1 + np.exp(5-3*reward))]])
+
+    def _update_prev_accepted_reward(self):
+        if self._results_accepted:
+            self._prev_max_accepted_reward = max(self._results_accepted.values())
 
     def _fit_model_with_callbacks(self, x_train, y_train, result, propagated_reward):
         if result > 0.9:
@@ -358,11 +365,11 @@ class MonteCarloTreeSearchNode():
                  y_train, callbacks=[self.model_checkpoint_callback, self.model_custom_tensorboard_callback])
 
     @classmethod
-    def create_models(cls):
-        cls._build_state_estimate_model()
+    def create_models(cls, path_prefix):
+        cls._build_state_estimate_model(path_prefix)
 
     @classmethod
-    def _build_state_estimate_model(cls):
+    def _build_state_estimate_model(cls, path_prefix):
         input_dim = Rummikub.tiles_number+1 # one bit true if player false if group
         cls.batch_size = 4
         units = 64
@@ -382,12 +389,13 @@ class MonteCarloTreeSearchNode():
             optimizer='adam',
         )
 
-        checkpoint_filepath = '/content/drive/MyDrive/rummikub/models/checkpoint'
+        checkpoint_filepath = path_prefix + 'models/checkpoint'
         cls.model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
             filepath=checkpoint_filepath,
             save_weights_only=True,
             save_freq=100)
 
+        CustomTensorboard.path_prefix = path_prefix
         cls.model_custom_tensorboard_callback = CustomTensorboard()
         
         if os.path.isfile(checkpoint_filepath): 
