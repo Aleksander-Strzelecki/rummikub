@@ -198,12 +198,14 @@ class MonteCarloTreeSearchNode():
             actions_table.insert(0, current_node.parent_action)
             current_node = current_node.parent
         
-        while not current_rollout_state.is_game_over() and counter < 20:
+        while not current_rollout_state.is_game_over():
             possible_moves = current_rollout_state.get_legal_actions()
             if possible_moves == []:
                 break
             
-            action = self.rollout_policy(possible_moves, current_rollout_state)
+            action, max_state_estimation = self.rollout_policy(possible_moves, current_rollout_state)
+            if (counter > 5) and (np.random.rand() > max_state_estimation):
+                break
             current_rollout_state, _, _ = current_rollout_state.move(action)
             counter += 1
 
@@ -255,9 +257,9 @@ class MonteCarloTreeSearchNode():
         if 100 in possible_moves_np[:,0]:
             return np.array([100, 0, 0])
         possible_rollout_states = self._get_possible_states(current_rollout_state, possible_moves)
-        state_distribution = self._get_state_distribution(possible_rollout_states)
+        state_distribution, max_state_estimation = self._get_state_distribution(possible_rollout_states)
 
-        return self._get_action_from_distribution(possible_moves_np, state_distribution)
+        return self._get_action_from_distribution(possible_moves_np, state_distribution), max_state_estimation
 
     def _get_possible_states(self, current_rollout_state, possible_moves):
         possible_rollout_states = []
@@ -322,7 +324,7 @@ class MonteCarloTreeSearchNode():
             return [[101,0,0]], buffer
 
     def _get_probable_untried_action(self):
-        state_distribution = self._get_state_distribution(self._untried_states_ann)
+        state_distribution, _ = self._get_state_distribution(self._untried_states_ann)
         action = self._get_action_from_distribution(np.array(self._untried_actions), state_distribution)
         action = action.tolist()
 
@@ -330,9 +332,10 @@ class MonteCarloTreeSearchNode():
 
     def _get_state_distribution(self, possible_states):
         state_estimation = self.state_estimate_model.predict(possible_states, verbose=0)
-        state_distribution = (np.array(state_estimation) / np.sum(state_estimation)).flatten()
+        state_estimation_array = np.array(state_estimation)
+        state_distribution = (state_estimation_array / np.sum(state_estimation)).flatten()
 
-        return state_distribution
+        return state_distribution, np.amax(state_estimation_array)
 
     def _get_action_from_distribution(self, actions:np.ndarray, distribution):
         rng = np.random.default_rng()
