@@ -1,9 +1,14 @@
 import numpy as np
+import json
+import os
 
 class DataSet():
-    def __init__(self):
+    def __init__(self, name, path):
         self.x = []
         self.y = []
+        self.name = name
+        self._path = path
+        self.load()
 
     def extend_dataset(self, x, y):
         self.x.extend(x)
@@ -22,3 +27,21 @@ class DataSet():
 
     def length(self):
         return len(self.x)
+
+    def save(self):
+        d = {}
+        d['x'] = self.x
+        d['y'] = self.y
+        with open(self._path + 'dataset_' + self.name, "w") as fp:
+            json.dump(d, fp)
+
+    def load(self):
+        path_to_file = self._path + 'dataset_' + self.name
+        if os.path.exists(path_to_file):
+            print('loading {} dataset from file {}'.format(self.name, path_to_file))
+            with open(path_to_file, "r") as fp:
+                d = json.load(fp)
+            self.x = d['x']
+            self.y = d['y']
+        else:
+            print('creating new {} dataset'.format(self.name))

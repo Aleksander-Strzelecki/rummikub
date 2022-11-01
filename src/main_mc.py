@@ -18,8 +18,9 @@ if __name__ == '__main__':
 
     game = Rummikub(2, learning=True)
     state = game.reset()
-    buffer = DataSet()
-    positive_buffer = DataSet()
+    path_datasets = 'datasets/'
+    buffer = DataSet('all', path_datasets)
+    positive_buffer = DataSet('positive', path_datasets)
     mc_state = monte_carlo.MonteCarloSearchTreeState(state)
     monte_carlo.MonteCarloTreeSearchNode.create_models(path_prefix)
     while True:

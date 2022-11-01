@@ -302,7 +302,8 @@ class MonteCarloTreeSearchNode():
             buffer, positive_buffer = v.backpropagate(reward, dataset=buffer, positive_dataset=positive_buffer)
             buffer.shrink(self.BUFFER_SIZE)
             positive_buffer.shrink(self.POSITIVE_BUFFER_SIZE)
-        
+        self._save_datasets([buffer, positive_buffer])
+
         child = self.best_child(c_param=0., ann_param=0., verbose=True)
         actions.append(child.parent_action)
         while child.children:
@@ -353,6 +354,10 @@ class MonteCarloTreeSearchNode():
     def _update_prev_accepted_reward(self):
         if self._results_accepted:
             self._prev_max_accepted_reward = max(self._results_accepted.values())
+
+    def _save_datasets(self, datasets):
+        for dataset in datasets:
+            dataset.save()
 
     def _fit_model_with_callbacks(self, x_train, y_train, result, propagated_reward):
         if result > 0.9:
