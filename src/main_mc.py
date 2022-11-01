@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     game = Rummikub(2, learning=True)
     state = game.reset()
-    path_datasets = 'datasets/'
+    path_datasets = path_prefix + 'datasets/'
     buffer = DataSet('all', path_datasets)
     positive_buffer = DataSet('positive', path_datasets)
     mc_state = monte_carlo.MonteCarloSearchTreeState(state)
