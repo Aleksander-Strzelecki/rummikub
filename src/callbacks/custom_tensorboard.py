@@ -4,7 +4,7 @@ from tensorflow import keras
 from datetime import datetime
 
 class CustomTensorboard(tf.keras.callbacks.Callback):
-    path_prefix = ''
+    path_prefix = '/content/drive/MyDrive/rummikub/'
     logdir = path_prefix + "logs/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
     file_writer = tf.summary.create_file_writer(logdir + "/metrics")
     file_writer.set_as_default()
