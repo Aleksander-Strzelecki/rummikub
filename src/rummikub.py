@@ -198,7 +198,7 @@ class Rummikub:
         return self._get_state()
     
     def is_end(self):
-        return False
+        return not np.any(self.players[(self.activ-1) % self.num_players, :])
 
     def _commit(self):
         self.groups_backup = self.groups.copy()

@@ -25,6 +25,10 @@ if __name__ == '__main__':
     monte_carlo.MonteCarloTreeSearchNode.create_models(path_prefix)
     while True:
         game.render()
+        if game.is_end():
+            state = game.reset()
+            mc_state = monte_carlo.MonteCarloSearchTreeState(state)
+            game.render()
         root = monte_carlo.MonteCarloTreeSearchNode(state = mc_state)
         actions_sequence, buffer = root.best_actions(buffer=buffer, positive_buffer=positive_buffer)
         print("Best Actions: ", actions_sequence)
