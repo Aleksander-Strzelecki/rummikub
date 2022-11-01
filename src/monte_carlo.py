@@ -254,12 +254,15 @@ class MonteCarloTreeSearchNode():
 
     def rollout_policy(self, possible_moves, current_rollout_state):
         possible_moves_np = np.array(possible_moves)
+
         if 100 in possible_moves_np[:,0]:
-            return np.array([100, 0, 0])
+            return np.array([100, 0, 0]), 1
+            
         possible_rollout_states = self._get_possible_states(current_rollout_state, possible_moves)
         state_distribution, max_state_estimation = self._get_state_distribution(possible_rollout_states)
+        action_from_distribution = self._get_action_from_distribution(possible_moves_np, state_distribution)
 
-        return self._get_action_from_distribution(possible_moves_np, state_distribution), max_state_estimation
+        return action_from_distribution, max_state_estimation
 
     def _get_possible_states(self, current_rollout_state, possible_moves):
         possible_rollout_states = []
@@ -405,8 +408,8 @@ class MonteCarloTreeSearchNode():
             save_weights_only=True,
             save_freq=100)
 
-        CustomTensorboard.path_prefix = path_prefix
         cls.model_custom_tensorboard_callback = CustomTensorboard()
+        CustomTensorboard.path_prefix = path_prefix
         
         if os.path.isfile(checkpoint_filepath): 
             model.load_weights(checkpoint_filepath)
