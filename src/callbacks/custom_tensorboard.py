@@ -13,11 +13,7 @@ class CustomTensorboard(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         self.total_epoch += 1
         tf.summary.scalar('loss', data=logs['loss'], step=self.total_epoch)
-        if tbv.tensorboard_move_done:
-            tf.summary.scalar('loss_when_move', data=logs['loss'], step=self.total_epoch)
-            tf.summary.scalar('tiles_laid', data=tbv.tensorboard_tiles_laid, step=self.total_epoch)
-        else:
-            tf.summary.scalar('loss_when_no_move', data=logs['loss'], step=self.total_epoch)
+        tf.summary.scalar('tiles_laid', data=tbv.tensorboard_tiles_laid, step=self.total_epoch)
         for buffer_name in tbv.tensorboard_buffer_elements:
             tf.summary.scalar('elements in buffer_' + buffer_name, data=tbv.tensorboard_buffer_elements[buffer_name],
             step=self.total_epoch)

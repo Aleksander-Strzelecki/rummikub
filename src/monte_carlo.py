@@ -368,12 +368,7 @@ class MonteCarloTreeSearchNode():
             dataset.save()
 
     def _fit_model_with_callbacks(self, x_train, y_train, result, propagated_reward):
-        if result > 0.9:
-            tbv.tensorboard_move_done = True
-            tbv.tensorboard_tiles_laid = propagated_reward
-        else:
-            tbv.tensorboard_tiles_laid = 0
-            tbv.tensorboard_move_done = False
+        tbv.tensorboard_tiles_laid = propagated_reward
         self.state_estimate_model.fit(x_train,
                  y_train, callbacks=[self.model_checkpoint_callback, self.model_custom_tensorboard_callback])
 
