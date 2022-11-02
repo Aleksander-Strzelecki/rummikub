@@ -323,7 +323,7 @@ class MonteCarloTreeSearchNode():
             return actions, buffer
         elif spare_actions:
             print('Action from rollout')
-            return spare_actions[-1], buffer
+            return self._best_action_from_rollout(spare_actions), buffer
         else:
             print('Action not found return default')
             return [[101,0,0]], buffer
@@ -366,6 +366,19 @@ class MonteCarloTreeSearchNode():
     def _save_datasets(self, datasets):
         for dataset in datasets:
             dataset.save()
+
+    def _best_action_from_rollout(self, actions_list):
+        score_list = []
+        for actions in actions_list:
+            score = 0
+            for action in actions:
+                from_gr, _, _ = action
+                if from_gr == 0:
+                    score += 1
+            score_list.append(score)
+        max_index = score_list.index(max(score_list))
+
+        return actions_list[max_index]        
 
     def _fit_model_with_callbacks(self, x_train, y_train, result, propagated_reward):
         tbv.tensorboard_tiles_laid = propagated_reward
