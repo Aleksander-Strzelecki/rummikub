@@ -19,10 +19,10 @@ class CustomTensorboard(tf.keras.callbacks.Callback):
             step=self.total_epoch)
 
         for player_number in tbv.tensorboard_player_tiles_counter:
-            tf.summary.scalar('player_tiles_counter_' + player_number, data=tbv.tensorboard_player_tiles_counter[player_number],
+            tf.summary.scalar('player_tiles_counter_' + int(player_number), data=tbv.tensorboard_player_tiles_counter[player_number],
             step=self.total_epoch)
         for player_number in tbv.tensorboard_manipulation_counter_player:
-            tf.summary.scalar('player_manipulation_counter_' + player_number, data=tbv.tensorboard_manipulation_counter_player[player_number],
+            tf.summary.scalar('player_manipulation_counter_' + int(player_number), data=tbv.tensorboard_manipulation_counter_player[player_number],
             step=self.total_epoch)
 
         tf.summary.scalar('manipulation_counter', data=tbv.tensorboard_manipulation_counter, step=self.total_epoch)
