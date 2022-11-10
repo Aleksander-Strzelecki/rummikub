@@ -73,6 +73,10 @@ class Rummikub:
     def get_true_idx(self, array):
         return np.nonzero(array)[0]
 
+    def get_player_tiles_number(self, player_id):
+        tiles_idx = self.get_true_idx(self.players[player_id,:])
+        return len(tiles_idx)
+
     def print_tiles(self, tiles_idx):
         for t_idx in tiles_idx:
             tile = self.tiles[:,t_idx]

@@ -4,7 +4,24 @@ import numpy as np
 import time
 from dataset import DataSet
 import argparse
+import global_variables.tensorboard_variables as tbv
 
+def update_tensorboard_player_tiles_counter(game:Rummikub):
+    for i in range(game.num_players):
+        ith_player_tiles_count = game.get_player_tiles_number(i)
+        tbv.tensorboard_player_tiles_counter[i] = ith_player_tiles_count
+
+def count_manipulations(actions_sequence:np.ndarray):
+    from_array = actions_sequence[:,0]
+    manipulation_bool = (from_array > 0) and (from_array < 100)
+    
+    return manipulation_bool.sum()
+
+def update_tensorboard_manipulation_counter(game:Rummikub, actions_sequence:np.ndarray):
+    activ_player_idx = game.activ
+    activ_player_manipulation = count_manipulations(actions_sequence)
+    tbv.tensorboard_manipulation_counter_player[activ_player_idx] = activ_player_manipulation
+    tbv.tensorboard_manipulation_counter = activ_player_manipulation
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Just an example",
@@ -33,6 +50,7 @@ if __name__ == '__main__':
         actions_sequence, buffer = root.best_actions(buffer=buffer, positive_buffer=positive_buffer)
         print("Best Actions: ", actions_sequence)
         actions_sequence = np.array(actions_sequence)
+        update_tensorboard_manipulation_counter(game, actions_sequence)
         actions_sequence[np.where(actions_sequence[:,0] < 100)[0], 0:2] -= 1
         actions_sequence = actions_sequence.tolist()
         from_group, to_group, t_pointer = actions_sequence.pop(0)
@@ -44,3 +62,5 @@ if __name__ == '__main__':
             state_p, _ = game.next_move(from_group, to_group, t_pointer)
         mc_state_p = monte_carlo.MonteCarloSearchTreeState(state_p)
         mc_state = mc_state_p
+
+        update_tensorboard_player_tiles_counter(game)
