@@ -13,7 +13,7 @@ def update_tensorboard_player_tiles_counter(game:Rummikub):
 
 def count_manipulations(actions_sequence:np.ndarray):
     from_array = actions_sequence[:,0]
-    manipulation_bool = (from_array > 0) and (from_array < 100)
+    manipulation_bool = ((from_array > 0) & (from_array < 100))
     
     return manipulation_bool.sum()
 
