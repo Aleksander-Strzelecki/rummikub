@@ -5,7 +5,6 @@ import time
 from dataset import DataSet
 import argparse
 import global_variables.tensorboard_variables as tbv
-from google.colab import drive
 
 def update_tensorboard_player_tiles_counter(game:Rummikub):
     for i in range(game.num_players):
@@ -24,10 +23,6 @@ def update_tensorboard_manipulation_counter(game:Rummikub, actions_sequence:np.n
     tbv.tensorboard_manipulation_counter_player[activ_player_idx] = activ_player_manipulation
     tbv.tensorboard_manipulation_counter = activ_player_manipulation
 
-def update_google_drive():
-    drive.flush_and_unmount()
-    drive.mount('/content/drive')
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Just an example",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -35,7 +30,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.gdrive:
         path_prefix = '/content/drive/MyDrive/rummikub/'
-        drive.mount('/content/drive')
     else:
         path_prefix = ''
 
@@ -69,5 +63,4 @@ if __name__ == '__main__':
             state_p, _ = game.next_move(from_group, to_group, t_pointer)
         mc_state_p = monte_carlo.MonteCarloSearchTreeState(state_p)
         mc_state = mc_state_p
-        if args.gdrive:
-            update_google_drive()
+
