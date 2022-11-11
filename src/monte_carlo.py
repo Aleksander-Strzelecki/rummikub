@@ -393,7 +393,7 @@ class MonteCarloTreeSearchNode():
     def _build_state_estimate_model(cls, path_prefix):
         input_dim = Rummikub.tiles_number+1 # one bit true if player false if group
         cls.batch_size = 4
-        units = 64
+        units = 128
         output_size = 1
 
         model = keras.models.Sequential(
@@ -414,7 +414,7 @@ class MonteCarloTreeSearchNode():
         cls.model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
             filepath=checkpoint_filepath,
             save_weights_only=True,
-            save_freq=100)
+            save_freq=1000)
 
         cls.model_custom_tensorboard_callback = CustomTensorboard()
         CustomTensorboard.path_prefix = path_prefix
