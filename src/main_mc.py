@@ -50,6 +50,7 @@ if __name__ == '__main__':
         actions_sequence, buffer = root.best_actions(buffer=buffer, positive_buffer=positive_buffer)
         print("Best Actions: ", actions_sequence)
         actions_sequence = np.array(actions_sequence)
+        update_tensorboard_player_tiles_counter(game)
         update_tensorboard_manipulation_counter(game, actions_sequence)
         actions_sequence[np.where(actions_sequence[:,0] < 100)[0], 0:2] -= 1
         actions_sequence = actions_sequence.tolist()
@@ -63,4 +64,3 @@ if __name__ == '__main__':
         mc_state_p = monte_carlo.MonteCarloSearchTreeState(state_p)
         mc_state = mc_state_p
 
-        update_tensorboard_player_tiles_counter(game)
