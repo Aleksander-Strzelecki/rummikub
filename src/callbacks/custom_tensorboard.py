@@ -30,6 +30,7 @@ class CustomTensorboard(tf.keras.callbacks.Callback):
             wandb.log({'player_manipulation_counter_' + str(player_number): tbv.tensorboard_manipulation_counter_player[player_number]})
 
         tf.summary.scalar('manipulation_counter', data=tbv.tensorboard_manipulation_counter, step=self.total_epoch)
+        wandb.log({'manipulation_counter': tbv.tensorboard_manipulation_counter})
 
         wandb.log({'loss': logs['loss'], 'tiles_laid': tbv.tensorboard_tiles_laid})
 
