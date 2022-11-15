@@ -417,7 +417,7 @@ class MonteCarloTreeSearchNode():
             save_weights_only=True,
             save_freq=1000)
 
-        wandb.init(project="rummikub", entity="ustelo", config=tf.compat.v1.flags.Flag, sync_tensorboard=True)
+        wandb.init(project="rummikub", entity="ustelo")
         cls.model_custom_tensorboard_callback = CustomTensorboard()
         CustomTensorboard.path_prefix = path_prefix
         
