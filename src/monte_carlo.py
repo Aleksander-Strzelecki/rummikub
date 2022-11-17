@@ -402,7 +402,7 @@ class MonteCarloTreeSearchNode():
             keras.layers.Bidirectional(keras.layers.LSTM(units), \
                 input_shape=(None, input_dim)),
             keras.layers.BatchNormalization(),
-            keras.layers.Dense(output_size, activation='sigmoid'),
+            keras.layers.Dense(output_size, activation='relu'),
         ]
         )
 
