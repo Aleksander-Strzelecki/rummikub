@@ -44,6 +44,7 @@ if __name__ == '__main__':
     while True:
         game.render()
         if game.is_end():
+            update_tensorboard_player_tiles_counter(game)
             state = game.reset()
             mc_state = monte_carlo.MonteCarloSearchTreeState(state)
             game.render()
