@@ -46,7 +46,10 @@ class DataSet():
             self.y = d['y']
         else:
             print('creating new {} dataset'.format(self.name))
-            os.mkdir(self._path)
+            try:
+                os.mkdir(self._path)
+            except FileExistsError:
+                print('Directory datasets already exsist')
 
     def tensorboard_update(self):
         tbv.tensorboard_buffer_elements[self.name] = len(self.x)
