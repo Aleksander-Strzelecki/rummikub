@@ -33,7 +33,7 @@ class DataSet():
         d = {}
         d['x'] = self.x
         d['y'] = self.y
-        with open(self._path + 'dataset_' + self.name, "w+") as fp:
+        with open(self._path + 'dataset_' + self.name, "w") as fp:
             json.dump(d, fp)
 
     def load(self):
