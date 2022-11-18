@@ -10,7 +10,8 @@ class Rummikub:
     tiles = np.zeros((2, 106), dtype=int)
     tiles_number = 106
     reduced_tiles_number = 54
-    def __init__(self, num_players, learning=False) -> None:
+    def __init__(self, num_players, learning=False, path='') -> None:
+        self._path=path
         self.activ = 0
         self.move_done = False
         self.num_players = num_players
@@ -200,6 +201,30 @@ class Rummikub:
         self._reward = 0
 
         return self._get_state()
+
+    def save_state(self):
+        with open(self._path + 'rummikub_state.npy', 'wb') as f:
+            np.save(f, self.players)
+            np.save(f, self.groups)
+            np.save(f, self.tiles_pointers)
+
+    def load_state(self):
+        path = self._path + 'rummikub_state.npy'
+        isExist = os.path.exists(path)
+        if isExist:
+            with open(path, 'rb') as f:
+                self.players = np.load(f)
+                self.groups = np.load(f)
+                self.tiles_pointers = np.load(f)
+            self.activ = 0
+            self.move_done = False
+            self.move_score = 0
+            self.groups_backup = self.groups.copy()
+            self.players_backup = self.players.copy()
+            self._reward = 0
+
+        return self._get_state()
+
     
     def is_end(self):
         return not np.any(self.players[(self.activ-1) % self.num_players, :])

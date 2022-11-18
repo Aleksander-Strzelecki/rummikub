@@ -34,8 +34,9 @@ if __name__ == '__main__':
     else:
         path_prefix = ''
 
-    game = Rummikub(2, learning=True)
+    game = Rummikub(2, learning=True, path='rummikub_state/')
     state = game.reset()
+    state = game.load_state()
     path_datasets = path_prefix + 'datasets/'
     buffer = DataSet('all', path_datasets)
     positive_buffer = DataSet('positive', path_datasets)
@@ -63,6 +64,7 @@ if __name__ == '__main__':
             # time.sleep(2)
             from_group, to_group, t_pointer = actions_sequence.pop(0)
             state_p, _ = game.next_move(from_group, to_group, t_pointer)
+        game.save_state()
         mc_state_p = monte_carlo.MonteCarloSearchTreeState(state_p)
         mc_state = mc_state_p
 
