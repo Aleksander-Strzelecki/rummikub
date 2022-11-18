@@ -16,7 +16,11 @@ class DataSet():
         self.y.extend(y)
 
     def get_data(self):
-        return np.array(self.x), np.array(self.y)
+        x_array = np.array(self.x)
+        y_array = np.array(self.y)
+        sample_x = x_array[np.random.choice(x_array.shape[0], min(x_array.shape[0],100)), :]
+        sample_y = y_array[np.random.choice(y_array.shape[0], min(y_array.shape[0],100)), :]
+        return sample_x, sample_y
 
     def shrink(self, size):
         x_np = np.array(self.x)
