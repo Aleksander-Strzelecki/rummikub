@@ -212,6 +212,7 @@ class Rummikub:
         path = self._path + 'rummikub_state.npy'
         isExist = os.path.exists(path)
         if isExist:
+            print("Loading rummikub state from {}".format(path))
             with open(path, 'rb') as f:
                 self.players = np.load(f)
                 self.groups = np.load(f)
