@@ -203,7 +203,9 @@ class Rummikub:
         return self._get_state()
 
     def save_state(self):
-        with open(self._path + 'rummikub_state.npy', 'wb') as f:
+        path = self._path + 'rummikub_state.npy'
+        with open(path, 'wb') as f:
+            print("Saving rummikub state to {}".format(path))
             np.save(f, self.players)
             np.save(f, self.groups)
             np.save(f, self.tiles_pointers)
@@ -212,8 +214,8 @@ class Rummikub:
         path = self._path + 'rummikub_state.npy'
         isExist = os.path.exists(path)
         if isExist:
-            print("Loading rummikub state from {}".format(path))
             with open(path, 'rb') as f:
+                print("Loading rummikub state from {}".format(path))
                 self.players = np.load(f)
                 self.groups = np.load(f)
                 self.tiles_pointers = np.load(f)
