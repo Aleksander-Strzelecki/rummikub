@@ -138,8 +138,8 @@ class MonteCarloTreeSearchNode():
     groups_estimate_model = None
     model_checkpoint_callback = None
     model_custom_tensorboard_callback = None
-    BUFFER_SIZE = 1000
-    POSITIVE_BUFFER_SIZE = 10000
+    BUFFER_SIZE = 3000
+    POSITIVE_BUFFER_SIZE = 3000
 
     def __init__(self, state: MonteCarloSearchTreeState, parent=None, parent_action=None):
         self.state = state
