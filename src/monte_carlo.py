@@ -47,7 +47,8 @@ class MonteCarloSearchTreeState():
         moves = []
         solver = Solver(groups)
         ################ GROUP EXTENDING ####################
-        moves.extend(solver.solve_player_groups(player, offset=1))
+        if np.any(player):
+            moves.extend(solver.solve_player_groups(player, offset=1))
         ############### GROUP MANIPULATION ##################
         moves.extend(solver.solve_manipulation(offset=1))
         
@@ -70,7 +71,7 @@ class MonteCarloSearchTreeState():
         true or false
         '''
         # end if player has no tiles or no free place on table or after sumbitting actual state of the table
-        return self._accepted or self.no_moves or (not np.any(self.state[0,:]))
+        return self._accepted or self.no_moves
 
     def game_result(self):
         '''
