@@ -385,7 +385,7 @@ class MonteCarloTreeSearchNode():
     def _fit_model_with_callbacks(self, x_train, y_train, result, propagated_reward):
         tbv.tensorboard_tiles_laid = propagated_reward
         self.state_estimate_model.fit(x_train,
-                 y_train, callbacks=[self.model_checkpoint_callback, self.model_custom_tensorboard_callback], epochs=3)
+                 y_train, callbacks=[self.model_checkpoint_callback, self.model_custom_tensorboard_callback])
 
     @classmethod
     def create_models(cls, path_prefix):
