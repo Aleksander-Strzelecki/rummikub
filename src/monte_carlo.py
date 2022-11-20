@@ -4,6 +4,7 @@ import os
 import global_variables.tensorboard_variables as tbv
 
 from tensorflow import keras
+from tensorflow.keras import mixed_precision
 from rummikub import Rummikub
 from dataset import DataSet
 from callbacks.custom_tensorboard import CustomTensorboard
@@ -399,12 +400,14 @@ class MonteCarloTreeSearchNode():
         units = 128
         output_size = 1
 
+        mixed_precision.set_global_policy('mixed_float16')
         model = keras.models.Sequential(
         [
             keras.layers.Bidirectional(keras.layers.LSTM(units), \
                 input_shape=(None, input_dim)),
             keras.layers.BatchNormalization(),
-            keras.layers.Dense(output_size, activation='sigmoid'),
+            keras.layers.Dense(output_size),
+            keras.layers.Activation('sigmoid', dtype='float32')
         ]
         )
 
