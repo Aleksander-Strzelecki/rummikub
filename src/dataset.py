@@ -19,8 +19,8 @@ class DataSet():
         x_array = np.array(self.x)
         y_array = np.array(self.y)
         if x_array.size > 0:
-            sample_x = x_array[np.random.choice(x_array.shape[0], min(x_array.shape[0],100)), :]
-            sample_y = y_array[np.random.choice(y_array.shape[0], min(y_array.shape[0],100)), :]
+            sample_x = x_array[np.random.choice(x_array.shape[0], min(x_array.shape[0],500)), :]
+            sample_y = y_array[np.random.choice(y_array.shape[0], min(y_array.shape[0],500)), :]
         else:
             sample_x = x_array
             sample_y = y_array

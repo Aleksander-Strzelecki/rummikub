@@ -139,8 +139,8 @@ class MonteCarloTreeSearchNode():
     groups_estimate_model = None
     model_checkpoint_callback = None
     model_custom_tensorboard_callback = None
-    BUFFER_SIZE = 3000
-    POSITIVE_BUFFER_SIZE = 3000
+    BUFFER_SIZE = 5000
+    POSITIVE_BUFFER_SIZE = 5000
 
     def __init__(self, state: MonteCarloSearchTreeState, parent=None, parent_action=None):
         self.state = state
@@ -385,7 +385,7 @@ class MonteCarloTreeSearchNode():
     def _fit_model_with_callbacks(self, x_train, y_train, result, propagated_reward):
         tbv.tensorboard_tiles_laid = propagated_reward
         self.state_estimate_model.fit(x_train,
-                 y_train, callbacks=[self.model_checkpoint_callback, self.model_custom_tensorboard_callback])
+                 y_train, callbacks=[self.model_checkpoint_callback, self.model_custom_tensorboard_callback], epochs=3)
 
     @classmethod
     def create_models(cls, path_prefix):
