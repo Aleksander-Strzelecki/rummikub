@@ -296,11 +296,11 @@ class MonteCarloTreeSearchNode():
             return self._groups_extended
 
     def best_actions(self, buffer:DataSet, positive_buffer:DataSet):
-        simulation_no = 100
+        simulation_no=0
         actions = []
         spare_actions = []
 
-        for i in range(simulation_no):
+        while (simulation_no<1000 and spare_actions==[]) or simulation_no<10:
             #TODO save success actions from rollout
             v = self._tree_policy()
             reward, rollout_actions = v.rollout()
@@ -311,6 +311,7 @@ class MonteCarloTreeSearchNode():
             positive_buffer.shrink(self.POSITIVE_BUFFER_SIZE)
             buffer.tensorboard_update()
             positive_buffer.tensorboard_update()
+            simulation_no += 1
         self._save_datasets([buffer, positive_buffer])
 
         child = self.best_child(c_param=0., ann_param=0., verbose=True)
