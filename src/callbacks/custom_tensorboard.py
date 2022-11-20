@@ -20,14 +20,20 @@ class CustomTensorboard(tf.keras.callbacks.Callback):
             step=self.total_epoch)
             wandb.log({'elements in buffer_' + buffer_name: tbv.tensorboard_buffer_elements[buffer_name]})
 
+        total_tiles_counter = 0
         for player_number in tbv.tensorboard_player_tiles_counter:
             tf.summary.scalar('player_tiles_counter_' + str(player_number), data=tbv.tensorboard_player_tiles_counter[player_number],
             step=self.total_epoch)
             wandb.log({'player_tiles_counter_' + str(player_number): tbv.tensorboard_player_tiles_counter[player_number]})
+            total_tiles_counter += tbv.tensorboard_player_tiles_counter[player_number]
+        tf.summary.scalar('total_tiles_counter', data=total_tiles_counter, step=self.total_epoch)
+        wandb.log({'total_tiles_counter': total_tiles_counter})
+        
         for player_number in tbv.tensorboard_manipulation_counter_player:
             tf.summary.scalar('player_manipulation_counter_' + str(player_number), data=tbv.tensorboard_manipulation_counter_player[player_number],
             step=self.total_epoch)
             wandb.log({'player_manipulation_counter_' + str(player_number): tbv.tensorboard_manipulation_counter_player[player_number]})
+            tbv.tensorboard_manipulation_counter_player[player_number]=0
 
         tf.summary.scalar('manipulation_counter', data=tbv.tensorboard_manipulation_counter, step=self.total_epoch)
         wandb.log({'manipulation_counter': tbv.tensorboard_manipulation_counter})
