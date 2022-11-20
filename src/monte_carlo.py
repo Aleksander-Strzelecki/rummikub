@@ -207,7 +207,7 @@ class MonteCarloTreeSearchNode():
                 break
             
             action, max_state_estimation = self.rollout_policy(possible_moves, current_rollout_state)
-            if (counter > 5) and (np.random.rand() > max_state_estimation):
+            if (counter > 5) and (np.random.rand() > max_state_estimation) or counter > 50:
                 break
             current_rollout_state, _, _ = current_rollout_state.move(action)
             counter += 1
