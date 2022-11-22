@@ -35,8 +35,13 @@ if __name__ == '__main__':
         path_prefix = ''
 
     game = Rummikub(2, learning=True, path='rummikub_state/')
-    state = game.reset()
-    state = game.load_state()
+    state, status = game.load_state()
+    if status==False:
+        run = wandb.init(project="rummikub", entity="ustelo", resume=False, reinit=True)
+        state = game.reset()
+    else:
+        run = wandb.init(project="rummikub", entity="ustelo", resume=True, reinit=True)
+
     path_datasets = path_prefix + 'datasets/'
     buffer = DataSet('all', path_datasets)
     positive_buffer = DataSet('positive', path_datasets)
@@ -46,6 +51,8 @@ if __name__ == '__main__':
         game.render()
         if game.is_end():
             update_tensorboard_player_tiles_counter(game)
+            run.finish()
+            run = wandb.init(project="rummikub", entity="ustelo", resume=False, reinit=True)
             state = game.reset()
             mc_state = monte_carlo.MonteCarloSearchTreeState(state)
             game.render()

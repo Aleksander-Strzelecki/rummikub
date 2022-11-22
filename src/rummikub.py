@@ -226,7 +226,7 @@ class Rummikub:
             self.players_backup = self.players.copy()
             self._reward = 0
 
-        return self._get_state()
+        return self._get_state(), isExist
 
     
     def is_end(self):
