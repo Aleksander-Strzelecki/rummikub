@@ -296,7 +296,7 @@ class MonteCarloTreeSearchNode():
         else:
             return self._groups_extended
 
-    def best_actions(self, buffer:DataSet, positive_buffer:DataSet):
+    def best_actions(self, buffer:DataSet, positive_buffer:DataSet, run):
         simulation_no=200
         actions = []
         spare_actions = []
@@ -313,6 +313,10 @@ class MonteCarloTreeSearchNode():
             buffer.tensorboard_update()
             positive_buffer.tensorboard_update()
         self._save_datasets([buffer, positive_buffer])
+
+        artifact = wandb.Artifact(name='model_128', type='model')
+        artifact.add_dir('models')
+        run.log_artifact(artifact)
 
         child = self.best_child(c_param=0., ann_param=0., verbose=True)
         actions.append(child.parent_action)

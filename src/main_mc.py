@@ -71,7 +71,7 @@ if __name__ == '__main__':
             mc_state = monte_carlo.MonteCarloSearchTreeState(state)
             game.render()
         root = monte_carlo.MonteCarloTreeSearchNode(state = mc_state)
-        actions_sequence, buffer = root.best_actions(buffer=buffer, positive_buffer=positive_buffer)
+        actions_sequence, buffer = root.best_actions(buffer=buffer, positive_buffer=positive_buffer, run=run)
         print("Best Actions: ", actions_sequence)
         actions_sequence = np.array(actions_sequence)
         update_tensorboard_player_tiles_counter(game)
