@@ -48,7 +48,7 @@ if __name__ == '__main__':
     else:
         path_prefix = ''
 
-    game = Rummikub(2, learning=True, path='rummikub_state/')
+    game = Rummikub(2, learning=False, path='rummikub_state/')
     state, status = game.load_state()
     if status==False:
         run = wandb.init(project="rummikub", entity="ustelo", resume=False, reinit=True)
