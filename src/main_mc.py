@@ -14,15 +14,29 @@ def update_tensorboard_player_tiles_counter(game:Rummikub):
 
 def count_manipulations(actions_sequence:np.ndarray):
     from_array = actions_sequence[:,0]
-    manipulation_bool = ((from_array > 0) & (from_array < 100))
+    tiles_numbers = actions_sequence[:, 2]
+
     
-    return manipulation_bool.sum()
+    manipulation_bool = ((from_array > 0) & (from_array < 100))
+    all_manipulation = manipulation_bool.sum()
+
+    values, count = np.unique(tiles_numbers[manipulation_bool], return_counts=True)
+    values = np.where(count>1, 0, count)
+    reliable_manipulation = np.sum(values)
+
+    fake_manipulation = all_manipulation - reliable_manipulation
+
+    return all_manipulation, reliable_manipulation, fake_manipulation
 
 def update_tensorboard_manipulation_counter(game:Rummikub, actions_sequence:np.ndarray):
     activ_player_idx = game.activ
-    activ_player_manipulation = count_manipulations(actions_sequence)
+    activ_player_manipulation, reliable_manipulation, fake_manipulation = count_manipulations(actions_sequence)
     tbv.tensorboard_manipulation_counter_player[activ_player_idx] = activ_player_manipulation
+    tbv.tensorboard_reliable_manipulation_counter_player[activ_player_idx] = reliable_manipulation
+    tbv.tensorboard_fake_manipulation_counter_player[activ_player_idx] = fake_manipulation
     tbv.tensorboard_manipulation_counter = activ_player_manipulation
+    tbv.tensorboard_reliable_manipulation = reliable_manipulation
+    tbv.tensorboard_fake_manipulation = fake_manipulation
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Just an example",

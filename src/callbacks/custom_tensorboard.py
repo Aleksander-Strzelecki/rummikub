@@ -35,9 +35,26 @@ class CustomTensorboard(tf.keras.callbacks.Callback):
             wandb.log({'player_manipulation_counter_' + str(player_number): tbv.tensorboard_manipulation_counter_player[player_number]})
             tbv.tensorboard_manipulation_counter_player[player_number]=0
 
+            tf.summary.scalar('player_reliable_manipulation_counter_' + str(player_number), data=tbv.tensorboard_reliable_manipulation_counter_player[player_number],
+            step=self.total_epoch)
+            wandb.log({'player_reliable_manipulation_counter_' + str(player_number): tbv.tensorboard_reliable_manipulation_counter_player[player_number]})
+            tbv.tensorboard_reliable_manipulation_counter_player[player_number]=0
+
+            tf.summary.scalar('player_fake_manipulation_counter_' + str(player_number), data=tbv.tensorboard_fake_manipulation_counter_player[player_number],
+            step=self.total_epoch)
+            wandb.log({'player_fake_manipulation_counter_' + str(player_number): tbv.tensorboard_fake_manipulation_counter_player[player_number]})
+            tbv.tensorboard_fake_manipulation_counter_player[player_number]=0
+
+                
         tf.summary.scalar('manipulation_counter', data=tbv.tensorboard_manipulation_counter, step=self.total_epoch)
         wandb.log({'manipulation_counter': tbv.tensorboard_manipulation_counter})
+        tf.summary.scalar('reliable_manipulation_counter', data=tbv.tensorboard_reliable_manipulation, step=self.total_epoch)
+        wandb.log({'reliable_manipulation_counter': tbv.tensorboard_reliable_manipulation})
+        tf.summary.scalar('fake_manipulation_counter', data=tbv.tensorboard_fake_manipulation, step=self.total_epoch)
+        wandb.log({'fake_manipulation_counter': tbv.tensorboard_fake_manipulation})
         tbv.tensorboard_manipulation_counter=0
-
+        tbv.tensorboard_fake_manipulation=0
+        tbv.tensorboard_reliable_manipulation=0
+        
         wandb.log({'loss': logs['loss'], 'potential_tiles_laid_number': tbv.tensorboard_tiles_laid})
 
