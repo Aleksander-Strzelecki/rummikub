@@ -341,10 +341,10 @@ class MonteCarloTreeSearchNode():
         return action
 
     def _get_state_distribution(self, possible_states):
-        epsilon = 1e-5
         state_estimation = self.state_estimate_model.predict(possible_states, verbose=0)
         state_estimation_array = np.array(state_estimation)
-        state_distribution = (state_estimation_array / (np.sum(state_estimation)+epsilon)).flatten()
+        state_estimation_array = state_estimation_array.astype('float64')
+        state_distribution = (state_estimation_array / np.sum(state_estimation_array)).flatten()
 
         return state_distribution, np.amax(state_estimation_array)
 
