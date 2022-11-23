@@ -56,6 +56,7 @@ class CustomTensorboard(tf.keras.callbacks.Callback):
         tbv.tensorboard_reliable_manipulation=0
         
         wandb.log({'loss': logs['loss'], 'potential_tiles_laid_number': tbv.tensorboard_tiles_laid})
+        wandb.log({'total_epoch': tbv.tensorboard_total_epoch})
 
         wandb.config.total_epoch = tbv.tensorboard_total_epoch
 
