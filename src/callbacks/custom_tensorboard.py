@@ -57,5 +57,5 @@ class CustomTensorboard(tf.keras.callbacks.Callback):
         wandb.log({'loss': logs['loss'], 'potential_tiles_laid_number': tbv.tensorboard_tiles_laid})
         wandb.log({'total_epoch': tbv.tensorboard_total_epoch})
 
-        wandb.config.total_epoch = tbv.tensorboard_total_epoch
+        wandb.config.update({"total_epoch": tbv.tensorboard_total_epoch})
         tbv.tensorboard_total_epoch += 1

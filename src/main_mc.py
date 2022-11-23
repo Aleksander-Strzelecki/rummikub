@@ -51,7 +51,7 @@ if __name__ == '__main__':
     game = Rummikub(2, learning=False, path='rummikub_state/')
     state, status = game.load_state()
     if status==False:
-        run = wandb.init(project="rummikub", entity="ustelo", reinit=True, allow_val_change=True)
+        run = wandb.init(config={"total_epoch": 0}, project="rummikub", entity="ustelo", reinit=True, allow_val_change=True)
         tbv.tensorboard_total_epoch = 0
         state = game.reset()
     else:
