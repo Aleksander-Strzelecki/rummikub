@@ -25,7 +25,6 @@ class CustomTensorboard(tf.keras.callbacks.Callback):
             wandb.log({'player_tiles_counter_' + str(player_number): tbv.tensorboard_player_tiles_counter[player_number]})
             total_tiles_counter += tbv.tensorboard_player_tiles_counter[player_number]
         tf.summary.scalar('total_tiles_counter', data=total_tiles_counter, step=tbv.tensorboard_total_epoch)
-        wandb.log({'total_tiles_counter': total_tiles_counter})
         
         for player_number in tbv.tensorboard_manipulation_counter_player:
             tf.summary.scalar('player_manipulation_counter_' + str(player_number), data=tbv.tensorboard_manipulation_counter_player[player_number],
@@ -45,17 +44,15 @@ class CustomTensorboard(tf.keras.callbacks.Callback):
 
                 
         tf.summary.scalar('manipulation_counter', data=tbv.tensorboard_manipulation_counter, step=tbv.tensorboard_total_epoch)
-        wandb.log({'manipulation_counter': tbv.tensorboard_manipulation_counter})
         tf.summary.scalar('reliable_manipulation_counter', data=tbv.tensorboard_reliable_manipulation, step=tbv.tensorboard_total_epoch)
-        wandb.log({'reliable_manipulation_counter': tbv.tensorboard_reliable_manipulation})
         tf.summary.scalar('fake_manipulation_counter', data=tbv.tensorboard_fake_manipulation, step=tbv.tensorboard_total_epoch)
-        wandb.log({'fake_manipulation_counter': tbv.tensorboard_fake_manipulation})
         tbv.tensorboard_manipulation_counter=0
         tbv.tensorboard_fake_manipulation=0
         tbv.tensorboard_reliable_manipulation=0
         
-        wandb.log({'loss': logs['loss'], 'potential_tiles_laid_number': tbv.tensorboard_tiles_laid})
-        wandb.log({'total_epoch': tbv.tensorboard_total_epoch})
+        wandb.log({'loss': logs['loss'], 'potential_tiles_laid_number': tbv.tensorboard_tiles_laid, 'total_epoch': tbv.tensorboard_total_epoch, 
+            'fake_manipulation_counter': tbv.tensorboard_fake_manipulation, 'reliable_manipulation_counter': tbv.tensorboard_reliable_manipulation, 
+            'manipulation_counter': tbv.tensorboard_manipulation_counter, 'total_tiles_counter': total_tiles_counter})
 
         wandb.config.update({"total_epoch": tbv.tensorboard_total_epoch}, allow_val_change=True)
         tbv.tensorboard_total_epoch += 1
