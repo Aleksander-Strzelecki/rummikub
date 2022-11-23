@@ -56,12 +56,10 @@ if __name__ == '__main__':
     game = Rummikub(2, learning=False, path='rummikub_state/')
     state, status = game.load_state()
     if status==False:
-        run = wandb.init(config={"total_epoch": 0}, project="rummikub", entity="ustelo", reinit=True)
-        tbv.tensorboard_total_epoch = 0
+        run = wandb.init(project="rummikub", entity="ustelo", reinit=True)
         state = game.reset()
     else:
-        run = wandb.init(config={"total_epoch": 0}, project="rummikub", entity="ustelo", resume=True)
-        tbv.tensorboard_total_epoch = wandb.config.total_epoch
+        run = wandb.init(project="rummikub", entity="ustelo", resume=True)
         
     path_datasets = path_prefix + 'datasets/'
     buffer = DataSet('all', path_datasets)
@@ -74,7 +72,6 @@ if __name__ == '__main__':
             update_tensorboard_player_tiles_counter(game)
             run.finish()
             run = wandb.init(project="rummikub", entity="ustelo", reinit=True)
-            tbv.tensorboard_total_epoch = 0
             state = game.reset()
             mc_state = monte_carlo.MonteCarloSearchTreeState(state)
             game.render()
