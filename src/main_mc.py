@@ -60,7 +60,7 @@ if __name__ == '__main__':
         tbv.tensorboard_total_epoch = 0
         state = game.reset()
     else:
-        run = wandb.init(project="rummikub", entity="ustelo", resume=True)
+        run = wandb.init(config={"total_epoch": 0}, project="rummikub", entity="ustelo", resume=True)
         tbv.tensorboard_total_epoch = wandb.config.total_epoch
         
     path_datasets = path_prefix + 'datasets/'
