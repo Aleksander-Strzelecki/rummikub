@@ -29,6 +29,11 @@ def count_manipulations(actions_sequence:np.ndarray):
     return all_manipulation, reliable_manipulation, fake_manipulation
 
 def update_tensorboard_manipulation_counter(game:Rummikub, actions_sequence:np.ndarray):
+    for i in range(game.num_players):
+        tbv.tensorboard_manipulation_counter_player[i] = 0
+        tbv.tensorboard_reliable_manipulation_counter_player[i] = 0
+        tbv.tensorboard_fake_manipulation_counter_player[i] = 0
+
     activ_player_idx = game.activ
     activ_player_manipulation, reliable_manipulation, fake_manipulation = count_manipulations(actions_sequence)
     tbv.tensorboard_manipulation_counter_player[activ_player_idx] = activ_player_manipulation
