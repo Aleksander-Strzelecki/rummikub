@@ -8,3 +8,4 @@ tensorboard_fake_manipulation_counter_player = {}
 tensorboard_player_tiles_counter = {}
 tensorboard_reliable_manipulation = 0
 tensorboard_fake_manipulation = 0
+tensorboard_total_epoch = 0
