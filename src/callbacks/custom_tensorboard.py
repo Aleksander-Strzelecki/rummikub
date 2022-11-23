@@ -11,7 +11,6 @@ class CustomTensorboard(tf.keras.callbacks.Callback):
     file_writer.set_as_default()
 
     def on_epoch_end(self, epoch, logs=None):
-        tbv.tensorboard_total_epoch += 1
         tf.summary.scalar('loss', data=logs['loss'], step=tbv.tensorboard_total_epoch)
         tf.summary.scalar('potential_tiles_laid_number', data=tbv.tensorboard_tiles_laid, step=tbv.tensorboard_total_epoch)
         for buffer_name in tbv.tensorboard_buffer_elements:
@@ -59,4 +58,4 @@ class CustomTensorboard(tf.keras.callbacks.Callback):
         wandb.log({'total_epoch': tbv.tensorboard_total_epoch})
 
         wandb.config.total_epoch = tbv.tensorboard_total_epoch
-
+        tbv.tensorboard_total_epoch += 1
