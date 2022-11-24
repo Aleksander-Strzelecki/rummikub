@@ -10,6 +10,7 @@ class DataSet():
         self.name = name
         self._path = path
         self.load()
+        tbv.tensorboard_buffer_elements[self.name] = 0
 
     def extend_dataset(self, x, y):
         self.x.extend(x)
