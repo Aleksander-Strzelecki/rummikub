@@ -314,7 +314,7 @@ class MonteCarloTreeSearchNode():
             positive_buffer.tensorboard_update()
         self._save_datasets([buffer, positive_buffer])
 
-        artifact = wandb.Artifact(name='model_128', type='model')
+        artifact = wandb.Artifact(name='model_64', type='model')
         artifact.add_dir('models')
         run.log_artifact(artifact)
 
@@ -401,7 +401,7 @@ class MonteCarloTreeSearchNode():
     def _build_state_estimate_model(cls, path_prefix):
         input_dim = Rummikub.tiles_number+1 # one bit true if player false if group
         cls.batch_size = 4
-        units = 128
+        units = 64
         output_size = 1
 
         mixed_precision.set_global_policy('mixed_float16')
