@@ -29,11 +29,6 @@ def count_manipulations(actions_sequence:np.ndarray):
     return all_manipulation, reliable_manipulation, fake_manipulation
 
 def update_tensorboard_manipulation_counter(game:Rummikub, actions_sequence:np.ndarray):
-    for i in range(game.num_players):
-        tbv.tensorboard_manipulation_counter_player[i] = 0
-        tbv.tensorboard_reliable_manipulation_counter_player[i] = 0
-        tbv.tensorboard_fake_manipulation_counter_player[i] = 0
-
     activ_player_idx = game.activ
     activ_player_manipulation, reliable_manipulation, fake_manipulation = count_manipulations(actions_sequence)
     tbv.tensorboard_manipulation_counter_player[activ_player_idx] = activ_player_manipulation
@@ -42,6 +37,12 @@ def update_tensorboard_manipulation_counter(game:Rummikub, actions_sequence:np.n
     tbv.tensorboard_manipulation_counter = activ_player_manipulation
     tbv.tensorboard_reliable_manipulation = reliable_manipulation
     tbv.tensorboard_fake_manipulation = fake_manipulation
+
+def init_tensorboard_manipulation_counters(game:Rummikub):
+    for i in range(game.num_players):
+        tbv.tensorboard_manipulation_counter_player[i] = 0
+        tbv.tensorboard_reliable_manipulation_counter_player[i] = 0
+        tbv.tensorboard_fake_manipulation_counter_player[i] = 0
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Just an example",
@@ -64,6 +65,7 @@ if __name__ == '__main__':
     path_datasets = path_prefix + 'datasets/'
     buffer = DataSet('all', path_datasets)
     positive_buffer = DataSet('positive', path_datasets)
+    init_tensorboard_manipulation_counters(game)
     mc_state = monte_carlo.MonteCarloSearchTreeState(state)
     monte_carlo.MonteCarloTreeSearchNode.create_models(path_prefix)
     while True:
