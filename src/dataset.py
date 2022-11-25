@@ -11,6 +11,8 @@ class DataSet():
         self._path = path
         self.load()
         tbv.tensorboard_buffer_elements[self.name] = 0
+        if not os.path.exists(self._path):
+            os.makedirs(self._path)
 
     def extend_dataset(self, x, y):
         self.x.extend(x)
