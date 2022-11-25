@@ -21,11 +21,12 @@ class StateANN():
         return np.expand_dims(np.hstack([player_or_group, state]), axis=0)
 
 class MonteCarloSearchTreeState():
-    def __init__(self, state, accepted=False, move_done=False):
+    def __init__(self, state, accepted=False, move_done=False, man_done=False):
         self.state = state
         self._accepted = accepted
         self.no_moves = False
         self.move_done = move_done
+        self.man_done = man_done
 
     def get_legal_actions(self): 
         '''
@@ -56,7 +57,7 @@ class MonteCarloSearchTreeState():
         ################## TABLE VALIDATION ####################
         if Solver.check_board(self.state[1:,:]) and self.move_done:
             moves.append([100, 0, 0])
-        elif Solver.check_board(self.state[1:,:]) and not self.move_done:
+        elif Solver.check_board(self.state[1:,:]) and not self.move_done and not self.man_done:
             moves.append([101,0,0])
 
         if moves == []:
@@ -108,6 +109,7 @@ class MonteCarloSearchTreeState():
         reward = 0
         groups_extended = 0
         move_done = self.move_done
+        man_done = self.man_done
         if from_row == 0:
             reward = 1
             move_done = True
@@ -116,12 +118,13 @@ class MonteCarloSearchTreeState():
         state_copy = self.state.copy()
         accepted = False
         if from_row < 100:
+            man_done=True
             state_copy[from_row, tile_idx] = False
             state_copy[to_row, tile_idx] = True
         else:
             accepted = True
 
-        return MonteCarloSearchTreeState(state_copy, accepted=accepted, move_done=move_done), reward, groups_extended
+        return MonteCarloSearchTreeState(state_copy, accepted=accepted, move_done=move_done, man_done=man_done), reward, groups_extended
 
     def get_state(self):
         state = np.vstack([self.state[0,:], self.any_groups])
