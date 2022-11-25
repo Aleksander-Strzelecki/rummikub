@@ -86,7 +86,7 @@ class MonteCarloSearchTreeState():
             # TODO player tiles laid started from this state
             # return 1
         if self._accepted and self.move_done:
-            return 0.2
+            return 0.5
         elif self._accepted:
             return 0.2
         return 0
