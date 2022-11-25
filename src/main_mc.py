@@ -60,7 +60,7 @@ if __name__ == '__main__':
         run = wandb.init(project="rummikub", entity="ustelo", reinit=True)
         state = game.reset()
     else:
-        run = wandb.init(project="rummikub", entity="ustelo", resume=True)
+        run = wandb.init(project="rummikub", entity="ustelo", reinit=True)
         
     path_datasets = path_prefix + 'datasets/'
     buffer = DataSet('all', path_datasets)
