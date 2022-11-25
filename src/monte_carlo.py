@@ -233,12 +233,12 @@ class MonteCarloTreeSearchNode():
         if self.parent:
             self.parent.backpropagate(result, child=self, propagated_reward=propagated_reward,
                 dataset=dataset, positive_dataset=positive_dataset)
-        else:
-            x_train, y_train = dataset.get_data()
-            x_train_positive, y_train_positive = positive_dataset.get_data()
-            x_concatenate = np.concatenate((x_train, x_train_positive), axis=0) if x_train_positive.size else x_train
-            y_concatenate = np.concatenate((y_train, y_train_positive), axis=0) if y_train_positive.size else y_train
-            self._fit_model_with_callbacks(x_concatenate, y_concatenate, result, propagated_reward)
+        # else:
+        #     x_train, y_train = dataset.get_data()
+        #     x_train_positive, y_train_positive = positive_dataset.get_data()
+        #     x_concatenate = np.concatenate((x_train, x_train_positive), axis=0) if x_train_positive.size else x_train
+        #     y_concatenate = np.concatenate((y_train, y_train_positive), axis=0) if y_train_positive.size else y_train
+        #     self._fit_model_with_callbacks(x_concatenate, y_concatenate, result, propagated_reward)
 
         return dataset, positive_dataset
 
@@ -303,6 +303,7 @@ class MonteCarloTreeSearchNode():
 
         for i in range(simulation_no):
             #TODO save success actions from rollout
+            print("Simulation_no = {}".format(str(i)))
             v = self._tree_policy()
             reward, rollout_actions = v.rollout()
             if rollout_actions:
@@ -429,7 +430,7 @@ class MonteCarloTreeSearchNode():
         cls.model_custom_tensorboard_callback = CustomTensorboard()
         CustomTensorboard.path_prefix = path_prefix
         
-        if os.path.isfile(checkpoint_filepath): 
-            model.load_weights(checkpoint_filepath)
+        # if os.path.isfile(checkpoint_filepath): 
+        model.load_weights(checkpoint_filepath)
         cls.state_estimate_model = model
         
