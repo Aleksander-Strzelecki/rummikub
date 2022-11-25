@@ -26,6 +26,8 @@ class Rummikub:
         self._reward = 0
         self._learning = learning
         self.distribute_tiles()
+        if not os.path.exists(self._path):
+            os.makedirs(self._path)
         
     @classmethod
     def create_tiles(cls):
