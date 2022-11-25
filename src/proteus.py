@@ -27,13 +27,18 @@ class Proteus(object):
         assessment = []
         ################ GROUP EXTENDING ####################
         for group, idx in zip(any_groups, any_groups_idx):
-            tiles_idxs = Solver.solve_pair(player, group)
+            tiles_idxs = Solver.solve_no_duplicates(player, group)
             for tile_idx in tiles_idxs:
                 any_groups_test = any_groups.copy()
                 player_test = player.copy()
                 player_test[tile_idx] = False
                 any_groups_test[idx, tile_idx] = True
-                assessment.append(self.evaluate_state(np.vstack([player_test, any_groups_test])))
+                # Reduce player test and any_groups_test for evaluate_state 
+                reduce_groups = np.hstack((any_groups_test[:,:Rummikub.reduced_tiles_number-2] \
+                    | any_groups_test[:,Rummikub.reduced_tiles_number-2:Rummikub.tiles_number-2], any_groups_test[:,-2:]))
+                reduce_player = np.hstack((player_test[:Rummikub.reduced_tiles_number-2] \
+                    | player_test[Rummikub.reduced_tiles_number-2:Rummikub.tiles_number-2], player_test[-2:]))
+                assessment.append(self.evaluate_state(np.vstack([reduce_player, reduce_groups])))
                 moves.append([-1, idx, tile_idx])
         ################ MOVE FINISH ONLY IF VALID BOARD ####################
         if Solver.check_board(any_groups) and self.game.move_done:
@@ -43,11 +48,7 @@ class Proteus(object):
 
         moves_array = np.array(moves)
         assessment_array = np.array(assessment)
-        # if max(assessment) < 0.01:
-        #     return [101, 0, 0]
         chance = random.random()
-        if valid_board:
-            return np.array([100,0,0]), np.max(assessment_array)
         if chance < eps and assessment_array.size > 0:
             row = np.random.choice(moves_array.shape[0], 1)
             return moves_array[row[0],:3], np.max(assessment_array)
@@ -69,13 +70,17 @@ class Proteus(object):
         assessment = []
         ################ GROUP EXTENDING ####################
         for group, idx in zip(any_groups, any_groups_idx):
-            tiles_idxs = Solver.solve_pair(player, group)
+            tiles_idxs = Solver.solve_no_duplicates(player, group)
             for tile_idx in tiles_idxs:
                 any_groups_test = any_groups.copy()
                 player_test = player.copy()
                 player_test[tile_idx] = False
                 any_groups_test[idx, tile_idx] = True
-                assessment.append(self.evaluate_state(np.vstack([player_test, any_groups_test])))
+                reduce_groups = np.hstack((any_groups_test[:,:Rummikub.reduced_tiles_number-2] \
+                    | any_groups_test[:,Rummikub.reduced_tiles_number-2:Rummikub.tiles_number-2], any_groups_test[:,-2:]))
+                reduce_player = np.hstack((player_test[:Rummikub.reduced_tiles_number-2] \
+                    | player_test[Rummikub.reduced_tiles_number-2:Rummikub.tiles_number-2], player_test[-2:]))
+                assessment.append(self.evaluate_state(np.vstack([reduce_player, reduce_groups])))
                 moves.append([-1, idx, tile_idx])
         ################ MOVE FINISH ONLY IF VALID BOARD ####################
         if Solver.check_board(any_groups) and self.game.move_done:
@@ -113,7 +118,7 @@ class Proteus(object):
         self.model.save(model_path)
     
     def _build_model(self):
-        input_dim = Rummikub.tiles_number
+        input_dim = Rummikub.reduced_tiles_number
         self.batch_size = 4
         units = 32
         output_size = 1

@@ -9,37 +9,44 @@ class Rummikub:
     # 101 - get new tile
     tiles = np.zeros((2, 106), dtype=int)
     tiles_number = 106
-    def __init__(self, num_players) -> None:
+    reduced_tiles_number = 54
+    def __init__(self, num_players, learning=False, path='') -> None:
+        self._path=path
         self.activ = 0
         self.move_done = False
         self.num_players = num_players
         self.players = np.zeros((num_players, 106), dtype=bool)
         self.move_score = 0
         self.tiles_pointers = np.ones((106), dtype=bool)
-        self.create_tiles()
-        self.distribute_tiles()
         self.groups = np.zeros((36, 106), dtype=bool)
         self.existing_groups = []
         self.groups_backup = self.groups.copy()
         self.players_backup = self.players.copy()
         self.colors_pointers = {0:'magenta', 1:'red', 2:'white', 3:'yellow', 4:'blue'}
         self._reward = 0
+        self._learning = learning
+        self.distribute_tiles()
         
-    def create_tiles(self):
-        colors = [1,1,2,2,3,3,4,4]
+    @classmethod
+    def create_tiles(cls):
+        colors = [1,2,3,4,1,2,3,4]
         counter = 0
         for color in colors:
             for i in range(1,14):
-                self.tiles[:,counter] = [color, i]
+                cls.tiles[:,counter] = [color, i]
                 counter += 1
-        self.tiles[:,counter] = [0, 0]
+        cls.tiles[:,counter] = [0, 0]
         counter += 1
-        self.tiles[:,counter] = [0, 0]
+        cls.tiles[:,counter] = [0, 0]
 
     def distribute_tiles(self):
-        indexes = np.random.choice(106, 14*len(self.players), replace=False)
+        if self._learning:
+            tiles_per_player = 106 // len(self.players)
+        else:
+            tiles_per_player = 14
+        indexes = np.random.choice(106, tiles_per_player*len(self.players), replace=False)
         for idx in range(self.num_players):
-            choice = indexes[14*idx:14*(idx+1)]
+            choice = indexes[tiles_per_player*idx:tiles_per_player*(idx+1)]
             self.players[idx, choice] = True
             self.tiles_pointers[choice] = False
 
@@ -66,6 +73,10 @@ class Rummikub:
 
     def get_true_idx(self, array):
         return np.nonzero(array)[0]
+
+    def get_player_tiles_number(self, player_id):
+        tiles_idx = self.get_true_idx(self.players[player_id,:])
+        return len(tiles_idx)
 
     def print_tiles(self, tiles_idx):
         for t_idx in tiles_idx:
@@ -115,6 +126,13 @@ class Rummikub:
             self.tiles_pointers[selected_tiles] = False
             self.activ = (self.activ + 1) % self.num_players
             self._commit()
+        elif from_group == 101 and not np.any(self.tiles_pointers):
+            self.move_done = False
+            self.move_score = 0
+            self._reward = 0
+            self._rollback()
+            self.activ = (self.activ + 1) % self.num_players
+            self._commit()
 
         return self._get_state(), self._get_reward()
 
@@ -156,8 +174,9 @@ class Rummikub:
             return True
         return np.all(array_no_joker == array_no_joker[0])
 
-    def checkUnique(self, l):
-        return np.unique(l).size == len(l)
+    def checkUnique(self, array):
+        array_no_joker = array[array != 0]
+        return np.unique(array_no_joker).size == len(array_no_joker)
 
     def checkConsecutive(self, array):
         jokers_count = len(array[array == 0])
@@ -182,9 +201,36 @@ class Rummikub:
         self._reward = 0
 
         return self._get_state()
+
+    def save_state(self):
+        path = self._path + 'rummikub_state.npy'
+        with open(path, 'wb') as f:
+            print("Saving rummikub state to {}".format(path))
+            np.save(f, self.players)
+            np.save(f, self.groups)
+            np.save(f, self.tiles_pointers)
+
+    def load_state(self):
+        path = self._path + 'rummikub_state.npy'
+        isExist = os.path.exists(path)
+        if isExist:
+            with open(path, 'rb') as f:
+                print("Loading rummikub state from {}".format(path))
+                self.players = np.load(f)
+                self.groups = np.load(f)
+                self.tiles_pointers = np.load(f)
+            self.activ = 0
+            self.move_done = False
+            self.move_score = 0
+            self.groups_backup = self.groups.copy()
+            self.players_backup = self.players.copy()
+            self._reward = 0
+
+        return self._get_state(), isExist
+
     
     def is_end(self):
-        return False
+        return not np.any(self.players[(self.activ-1) % self.num_players, :])
 
     def _commit(self):
         self.groups_backup = self.groups.copy()
@@ -201,3 +247,6 @@ class Rummikub:
 
     def _get_reward(self):
         return self._reward
+
+print("Initializing rummikub tiles")
+Rummikub.create_tiles()
