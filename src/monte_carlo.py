@@ -230,6 +230,8 @@ class MonteCarloTreeSearchNode():
             self._results_accepted[self] = result
         result_train = self._get_result_train()
         self._extend_datasets(dataset, positive_dataset, result_train)
+        if propagated_reward >= 1:
+            tbv.tensorboard_time_to_tile=min(tbv.tensorboard_time_to_tile, tbv.tensorboard_actual_iteration)
         if self.parent:
             self.parent.backpropagate(result, child=self, propagated_reward=propagated_reward,
                 dataset=dataset, positive_dataset=positive_dataset)
@@ -300,6 +302,8 @@ class MonteCarloTreeSearchNode():
         simulation_no=200
         actions = []
         spare_actions = []
+        tbv.tensorboard_time_to_tile=1000
+        tbv.tensorboard_actual_iteration = 0
 
         for i in range(simulation_no):
             #TODO save success actions from rollout
@@ -313,6 +317,7 @@ class MonteCarloTreeSearchNode():
             positive_buffer.shrink(self.POSITIVE_BUFFER_SIZE)
             buffer.tensorboard_update()
             positive_buffer.tensorboard_update()
+            tbv.tensorboard_actual_iteration += 1
         self._save_datasets([buffer, positive_buffer])
 
         artifact = wandb.Artifact(name='model_128', type='model')

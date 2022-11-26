@@ -54,4 +54,5 @@ class CustomTensorboard(tf.keras.callbacks.Callback):
             'fake_manipulation_counter': tbv.tensorboard_fake_manipulation, 'reliable_manipulation_counter': tbv.tensorboard_reliable_manipulation, 
             'manipulation_counter': tbv.tensorboard_manipulation_counter, 'total_tiles_counter': total_tiles_counter})
 
+        wandb.log({'Iteration_to_find_move': tbv.tensorboard_time_to_tile})
         tbv.tensorboard_total_epoch += 1
