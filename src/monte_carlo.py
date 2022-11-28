@@ -320,9 +320,9 @@ class MonteCarloTreeSearchNode():
             tbv.tensorboard_actual_iteration += 1
         self._save_datasets([buffer, positive_buffer])
 
-        artifact = wandb.Artifact(name='model_128', type='model')
-        artifact.add_dir('models')
-        run.log_artifact(artifact)
+        # artifact = wandb.Artifact(name='model_128', type='model')
+        # artifact.add_dir('models')
+        # run.log_artifact(artifact)
 
         child = self.best_child(c_param=0., ann_param=0., verbose=True)
         actions.append(child.parent_action)
