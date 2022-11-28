@@ -11,7 +11,6 @@ class CustomTensorboard(tf.keras.callbacks.Callback):
     file_writer.set_as_default()
 
     def on_epoch_end(self, epoch, logs=None):
-        tf.summary.scalar('loss', data=logs['loss'], step=tbv.tensorboard_total_epoch)
         tf.summary.scalar('potential_tiles_laid_number', data=tbv.tensorboard_tiles_laid, step=tbv.tensorboard_total_epoch)
         for buffer_name in tbv.tensorboard_buffer_elements:
             tf.summary.scalar('elements in buffer_' + buffer_name, data=tbv.tensorboard_buffer_elements[buffer_name],
@@ -50,9 +49,10 @@ class CustomTensorboard(tf.keras.callbacks.Callback):
         tbv.tensorboard_fake_manipulation=0
         tbv.tensorboard_reliable_manipulation=0
         
-        wandb.log({'loss': logs['loss'], 'potential_tiles_laid_number': tbv.tensorboard_tiles_laid, 'total_epoch': tbv.tensorboard_total_epoch, 
+        wandb.log({'potential_tiles_laid_number': tbv.tensorboard_tiles_laid, 'total_epoch': tbv.tensorboard_total_epoch, 
             'fake_manipulation_counter': tbv.tensorboard_fake_manipulation, 'reliable_manipulation_counter': tbv.tensorboard_reliable_manipulation, 
             'manipulation_counter': tbv.tensorboard_manipulation_counter, 'total_tiles_counter': total_tiles_counter})
 
         wandb.log({'Iteration_to_find_move': tbv.tensorboard_time_to_tile})
+        tbv.tensorboard_time_to_tile = 1000
         tbv.tensorboard_total_epoch += 1
