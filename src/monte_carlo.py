@@ -242,6 +242,8 @@ class MonteCarloTreeSearchNode():
         #     y_concatenate = np.concatenate((y_train, y_train_positive), axis=0) if y_train_positive.size else y_train
         #     self._fit_model_with_callbacks(x_concatenate, y_concatenate, result, propagated_reward)
 
+        tbv.tensorboard_tiles_laid = propagated_reward
+        
         return dataset, positive_dataset
 
     def is_fully_expanded(self):
