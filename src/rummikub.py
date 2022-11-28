@@ -123,6 +123,7 @@ class Rummikub:
             self.move_score = 0
             self._reward = 0
             self._rollback()
+            np.random.seed(0)
             selected_tiles = np.random.choice(self.get_true_idx(self.tiles_pointers))
             self.players[self.activ, selected_tiles] = True
             self.tiles_pointers[selected_tiles] = False
