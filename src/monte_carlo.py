@@ -313,7 +313,7 @@ class MonteCarloTreeSearchNode():
             if rollout_actions:
                 spare_actions.append(rollout_actions)
             buffer, positive_buffer = v.backpropagate(reward, dataset=buffer, positive_dataset=positive_buffer)
-            CustomTensorboard.on_epoch_end(1)
+            CustomTensorboard.on_epoch_end(epoch=1)
             buffer.shrink(self.BUFFER_SIZE)
             positive_buffer.shrink(self.POSITIVE_BUFFER_SIZE)
             buffer.tensorboard_update()
