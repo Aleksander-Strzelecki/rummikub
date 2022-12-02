@@ -404,7 +404,7 @@ class MonteCarloTreeSearchNode():
     def _build_state_estimate_model(cls, path_prefix):
         input_dim = Rummikub.tiles_number+1 # one bit true if player false if group
         cls.batch_size = 4
-        units = 64
+        units = 128
         output_size = 1
 
         mixed_precision.set_global_policy('mixed_float16')
