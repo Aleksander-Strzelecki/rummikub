@@ -7,6 +7,7 @@ import argparse
 import global_variables.tensorboard_variables as tbv
 import wandb
 
+
 def update_tensorboard_player_tiles_counter(game:Rummikub):
     for i in range(game.num_players):
         ith_player_tiles_count = game.get_player_tiles_number(i)
