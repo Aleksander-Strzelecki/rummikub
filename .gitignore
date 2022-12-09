@@ -6,6 +6,7 @@ test.ipynb
 models
 logs/*
 datasets/*
+wandb/*
 
 ## Core latex/pdflatex auxiliary files:
 *.aux
