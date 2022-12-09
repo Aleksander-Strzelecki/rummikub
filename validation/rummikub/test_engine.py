@@ -3,8 +3,8 @@ import numpy as np
 import pytest
 
 
-def test_end_of_game():
-    game = Rummikub(2, learning=True)
+def test_end_of_game(tmp_path):
+    game = Rummikub(2, learning=True, path=tmp_path)
     state = game.reset()
     game.players[0,:] = False
     game.players[0,[0,1,2]] = True
@@ -16,8 +16,8 @@ def test_end_of_game():
     game.render()
     assert game.is_end() == True
 
-def test_negative_end_of_game():
-    game = Rummikub(2, learning=True)
+def test_negative_end_of_game(tmp_path):
+    game = Rummikub(2, learning=True, path=tmp_path)
     state = game.reset()
     game.players[0,[0,1,2]] = True
     game.render()
@@ -28,8 +28,8 @@ def test_negative_end_of_game():
     game.render()
     assert game.is_end() == False
 
-def test_of_end_and_reset():
-    game = Rummikub(2, learning=True)
+def test_of_end_and_reset(tmp_path):
+    game = Rummikub(2, learning=True, path=tmp_path)
     state = game.reset()
     game.players[0,:] = False
     game.players[0,[0,1,2]] = True

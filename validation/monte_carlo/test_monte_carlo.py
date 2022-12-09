@@ -4,7 +4,7 @@ import monte_carlo
 from rummikub import Rummikub
 
 def test_best_action_from_rollout(tmp_path):
-    game = Rummikub(2, learning=True)
+    game = Rummikub(2, learning=True, path=tmp_path)
     state = game.reset()
     mc_state = monte_carlo.MonteCarloSearchTreeState(state)
     monte_carlo.MonteCarloTreeSearchNode.create_models(str(tmp_path) + '/')
