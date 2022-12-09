@@ -4,3 +4,4 @@ tensorflow==2.8.*
 termcolor==1.1.*
 tensorboard==2.8.*
 keras==2.8.*
+scipy==1.9.*
